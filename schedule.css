@@ -1,0 +1,255 @@
+/* PAGE HEADER */
+.page-header {
+  padding: 100px 24px 40px;
+  background: var(--blue-dark);
+  text-align: center;
+  color: var(--white);
+}
+.page-header h1 {
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
+  color: var(--yellow);
+  margin-bottom: 8px;
+}
+.page-header p {
+  color: rgba(255,255,255,0.7);
+  font-size: 1rem;
+}
+
+/* CALENDAR SECTION */
+.cal-section {
+  padding: 48px 24px 32px;
+  background: var(--light-bg);
+}
+
+/* Month Nav */
+.cal-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  margin-bottom: 28px;
+}
+.cal-title {
+  font-size: 1.5rem;
+  color: var(--blue);
+  min-width: 220px;
+  text-align: center;
+}
+.cal-arrow {
+  background: var(--blue);
+  color: var(--white);
+  border: none;
+  border-radius: 4px;
+  width: 40px;
+  height: 40px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: background 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.cal-arrow:hover { background: var(--blue-dark); }
+
+/* Grid */
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+.cal-header {
+  margin-bottom: 6px;
+}
+.cal-header div {
+  text-align: center;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.85rem;
+  letter-spacing: 0.06em;
+  color: var(--blue);
+  text-transform: uppercase;
+  padding: 6px 0;
+}
+
+/* Day Cells */
+.cal-day {
+  background: var(--white);
+  border-radius: 6px;
+  min-height: 80px;
+  padding: 8px;
+  position: relative;
+  border: 1px solid #e0e7ef;
+  transition: border-color 0.15s;
+}
+.cal-day.other-month {
+  background: #eef1f6;
+  opacity: 0.5;
+}
+.cal-day.today {
+  border-color: var(--blue);
+  border-width: 2px;
+}
+.cal-day.has-events { cursor: pointer; }
+.cal-day.has-events:hover { border-color: var(--blue); }
+
+.day-num {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.cal-day.today .day-num {
+  background: var(--blue);
+  color: var(--white);
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+}
+.cal-day.other-month .day-num { color: #aaa; }
+
+/* Event pills */
+.event-pill {
+  font-size: 0.7rem;
+  font-weight: 600;
+  border-radius: 3px;
+  padding: 2px 5px;
+  margin-bottom: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--white);
+}
+.pill-tournament { background: #e63946; }
+.pill-practice   { background: var(--blue); }
+.pill-event      { background: #2a9d8f; }
+.more-events {
+  font-size: 0.68rem;
+  color: var(--blue);
+  font-weight: 600;
+}
+
+/* Event Detail Panel */
+.event-detail {
+  max-width: 900px;
+  margin: 20px auto 0;
+  background: var(--white);
+  border-radius: 8px;
+  padding: 24px 28px;
+  border-left: 4px solid var(--blue);
+  box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+  position: relative;
+}
+.event-detail.hidden { display: none; }
+.event-detail h3 {
+  font-size: 1.1rem;
+  color: var(--blue);
+  margin-bottom: 14px;
+}
+.event-detail ul { list-style: none; }
+.event-detail li {
+  padding: 8px 0;
+  border-bottom: 1px solid #eef1f6;
+  font-size: 0.95rem;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.event-detail li:last-child { border-bottom: none; }
+.close-btn {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  cursor: pointer;
+  color: var(--text-light);
+  line-height: 1;
+}
+.close-btn:hover { color: var(--blue); }
+
+/* Legend */
+.cal-legend {
+  display: flex;
+  gap: 24px;
+  justify-content: center;
+  margin-top: 24px;
+  flex-wrap: wrap;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.88rem;
+  color: var(--text-light);
+}
+.dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.dot-tournament { background: #e63946; }
+.dot-practice   { background: var(--blue); }
+.dot-event      { background: #2a9d8f; }
+
+/* Upcoming Section */
+.upcoming-section { padding: 60px 24px; }
+.upcoming-section h2 { margin-bottom: 28px; }
+.upcoming-list { display: flex; flex-direction: column; gap: 14px; }
+.upcoming-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  background: rgba(255,255,255,0.07);
+  border-radius: 8px;
+  padding: 18px 22px;
+  border-left: 4px solid var(--yellow);
+}
+.upcoming-item.type-tournament { border-left-color: #e63946; }
+.upcoming-item.type-practice   { border-left-color: var(--blue); }
+.upcoming-item.type-event      { border-left-color: #2a9d8f; }
+.upcoming-date {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1rem;
+  color: var(--yellow);
+  min-width: 100px;
+  font-weight: 600;
+}
+.upcoming-item.type-tournament .upcoming-date { color: #ff6b6b; }
+.upcoming-item.type-practice   .upcoming-date { color: #7eb8f7; }
+.upcoming-item.type-event      .upcoming-date { color: #4ecdc4; }
+.upcoming-info h4 {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1rem;
+  color: var(--white);
+  margin-bottom: 4px;
+}
+.upcoming-info p {
+  font-size: 0.88rem;
+  color: rgba(255,255,255,0.6);
+}
+.no-events {
+  color: rgba(255,255,255,0.5);
+  font-size: 0.95rem;
+}
+.no-events.hidden { display: none; }
+
+/* Active nav link */
+nav ul a.active { color: var(--yellow) !important; opacity: 1 !important; }
+
+@media (max-width: 600px) {
+  .cal-day { min-height: 56px; padding: 4px; }
+  .event-pill { display: none; }
+  .more-events { font-size: 0.65rem; }
+  .day-num { font-size: 0.8rem; }
+  .upcoming-item { flex-direction: column; gap: 6px; }
+  .upcoming-date { min-width: unset; }
+}
