@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gallery | Southern Reign Baseball</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="gallery.css" />
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <div class="nav-inner">
+      <a href="index.html"><img src="assets/logo.jpg" alt="Southern Reign Baseball" class="nav-logo" /></a>
+      <ul>
+        <li><a href="index.html#about">About</a></li>
+        <li><a href="index.html#coaches">Coaches</a></li>
+        <li><a href="schedule.html">Schedule</a></li>
+        <li><a href="roster.html">Roster</a></li>
+        <li><a href="gallery.html">Gallery</a></li>
+        <li><a href="sponsors.html">Sponsors</a></li>
+        <li><a href="index.html#contact">Contact</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+    <div class="container">
+      <h1>Photo Gallery</h1>
+      <p>Game Day Moments &bull; Practice &bull; Tournaments</p>
+    </div>
+  </div>
+
+  <!-- GALLERY -->
+  <section class="section section-light">
+    <div class="container">
+      <p class="section-intro">Photos coming soon! Check back after our first tournament.</p>
+
+      <div class="gallery-grid">
+        <div class="gallery-placeholder">
+          <div class="gallery-placeholder-inner">
+            <span class="gallery-placeholder-icon">📸</span>
+            <span>Photo Coming Soon</span>
+          </div>
+        </div>
+        <div class="gallery-placeholder">
+          <div class="gallery-placeholder-inner">
+            <span class="gallery-placeholder-icon">📸</span>
+            <span>Photo Coming Soon</span>
+          </div>
+        </div>
+        <div class="gallery-placeholder">
+          <div class="gallery-placeholder-inner">
+            <span class="gallery-placeholder-icon">📸</span>
+            <span>Photo Coming Soon</span>
+          </div>
+        </div>
+        <div class="gallery-placeholder">
+          <div class="gallery-placeholder-inner">
+            <span class="gallery-placeholder-icon">📸</span>
+            <span>Photo Coming Soon</span>
+          </div>
+        </div>
+        <div class="gallery-placeholder">
+          <div class="gallery-placeholder-inner">
+            <span class="gallery-placeholder-icon">📸</span>
+            <span>Photo Coming Soon</span>
+          </div>
+        </div>
+        <div class="gallery-placeholder">
+          <div class="gallery-placeholder-inner">
+            <span class="gallery-placeholder-icon">📸</span>
+            <span>Photo Coming Soon</span>
+          </div>
+        </div>
+        <div class="gallery-placeholder">
+          <div class="gallery-placeholder-inner">
+            <span class="gallery-placeholder-icon">📸</span>
+            <span>Photo Coming Soon</span>
+          </div>
+        </div>
+        <div class="gallery-placeholder">
+          <div class="gallery-placeholder-inner">
+            <span class="gallery-placeholder-icon">📸</span>
+            <span>Photo Coming Soon</span>
+          </div>
+        </div>
+        <div class="gallery-placeholder">
+          <div class="gallery-placeholder-inner">
+            <span class="gallery-placeholder-icon">📸</span>
+            <span>Photo Coming Soon</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LIGHTBOX -->
+  <div class="lightbox" id="lightbox">
+    <button class="lightbox-close" id="lightboxClose">&times;</button>
+    <button class="lightbox-prev" id="lightboxPrev">&#8249;</button>
+    <img class="lightbox-img" id="lightboxImg" src="" alt="" />
+    <button class="lightbox-next" id="lightboxNext">&#8250;</button>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="container">
+      <img src="assets/logo.jpg" alt="Southern Reign Baseball" class="footer-logo" />
+      <p>&copy; 2026 Southern Reign Baseball &bull; Spring Hill, Tennessee</p>
+      <p>SouthernReignBaseball@gmail.com</p>
+    </div>
+  </footer>
+
+  <script>
+    // Lightbox — wires up real images only (not placeholders)
+    const lightbox = document.getElementById('lightbox');
+    const lightboxImg = document.getElementById('lightboxImg');
+    const imgs = Array.from(document.querySelectorAll('.gallery-grid img'));
+    let current = 0;
+
+    imgs.forEach((img, i) => {
+      img.style.cursor = 'pointer';
+      img.addEventListener('click', () => { current = i; open(); });
+    });
+
+    function open() {
+      lightboxImg.src = imgs[current].src;
+      lightboxImg.alt = imgs[current].alt;
+      lightbox.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function close() {
+      lightbox.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+
+    document.getElementById('lightboxClose').addEventListener('click', close);
+    document.getElementById('lightboxPrev').addEventListener('click', () => { current = (current - 1 + imgs.length) % imgs.length; open(); });
+    document.getElementById('lightboxNext').addEventListener('click', () => { current = (current + 1) % imgs.length; open(); });
+    lightbox.addEventListener('click', e => { if (e.target === lightbox) close(); });
+    document.addEventListener('keydown', e => {
+      if (!lightbox.classList.contains('active')) return;
+      if (e.key === 'Escape') close();
+      if (e.key === 'ArrowLeft') { current = (current - 1 + imgs.length) % imgs.length; open(); }
+      if (e.key === 'ArrowRight') { current = (current + 1) % imgs.length; open(); }
+    });
+  </script>
+
+</body>
+</html>
