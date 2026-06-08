@@ -55,8 +55,8 @@
 .cal-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 6px;
-  max-width: 900px;
+  gap: 8px;
+  max-width: 1100px;
   margin: 0 auto;
 }
 .cal-header {
@@ -76,8 +76,8 @@
 .cal-day {
   background: var(--white);
   border-radius: 6px;
-  min-height: 80px;
-  padding: 8px;
+  min-height: 100px;
+  padding: 10px;
   position: relative;
   border: 1px solid #e0e7ef;
   transition: border-color 0.15s;
@@ -95,10 +95,10 @@
 
 .day-num {
   font-family: 'Oswald', sans-serif;
-  font-size: 0.95rem;
+  font-size: 1rem;
   font-weight: 600;
   color: var(--text);
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 .cal-day.today .day-num {
   background: var(--blue);
@@ -115,15 +115,17 @@
 
 /* Event pills */
 .event-pill {
-  font-size: 0.7rem;
-  font-weight: 600;
-  border-radius: 3px;
-  padding: 2px 5px;
-  margin-bottom: 3px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  border-radius: 4px;
+  padding: 4px 8px;
+  margin-bottom: 4px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   color: var(--white);
+  letter-spacing: 0.01em;
+  display: block;
 }
 .pill-tournament { background: #e63946; }
 .pill-practice   { background: var(--blue); }
@@ -136,7 +138,7 @@
 
 /* Event Detail Panel */
 .event-detail {
-  max-width: 900px;
+  max-width: 1100px;
   margin: 20px auto 0;
   background: var(--white);
   border-radius: 8px;
