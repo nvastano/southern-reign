@@ -44,7 +44,7 @@ nav {
   justify-content: space-between;
   height: 64px;
 }
-.nav-logo { height: 44px; }
+.nav-logo { height: 44px; mix-blend-mode: screen; }
 nav ul {
   list-style: none;
   display: flex;
