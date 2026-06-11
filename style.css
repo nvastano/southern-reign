@@ -436,8 +436,8 @@ footer p { margin-bottom: 4px; }
   padding: 16px;
 }
 
-.sponsor-slot-lg { height: 180px; }
-.sponsor-slot-md { height: 140px; }
+.sponsor-slot-lg { height: 240px; }
+.sponsor-slot-md { height: 200px; }
 .sponsor-slot-sm { height: 110px; }
 
 .sponsor-placeholder {
@@ -460,6 +460,32 @@ footer p { margin-bottom: 4px; }
   font-family: 'Oswald', sans-serif;
   font-size: 0.95rem;
   letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.sponsor-family {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--blue-dark);
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+}
+.sponsor-family-name {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: var(--yellow);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.sponsor-family-sub {
+  font-size: 0.8rem;
+  color: rgba(255,255,255,0.6);
+  margin-top: 8px;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
 }
 
