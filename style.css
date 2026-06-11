@@ -429,11 +429,18 @@ footer p { margin-bottom: 4px; }
   overflow: hidden;
 }
 
-.sponsor-slot img {
+.sponsor-slot img,
+.sponsor-slot a img {
   width: 100%;
   height: 100%;
   object-fit: contain;
   padding: 16px;
+  display: block;
+}
+.sponsor-slot a {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 .sponsor-slot-lg { height: 240px; }
@@ -465,11 +472,11 @@ footer p { margin-bottom: 4px; }
 
 .sponsor-family {
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: var(--blue-dark);
+  background: var(--white);
   border-radius: 8px;
+  border: 2px solid var(--blue);
   padding: 20px;
   text-align: center;
 }
@@ -477,14 +484,7 @@ footer p { margin-bottom: 4px; }
   font-family: 'Oswald', sans-serif;
   font-size: 1.6rem;
   font-weight: 600;
-  color: var(--yellow);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-.sponsor-family-sub {
-  font-size: 0.8rem;
-  color: rgba(255,255,255,0.6);
-  margin-top: 8px;
+  color: var(--blue);
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
