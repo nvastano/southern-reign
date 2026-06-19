@@ -96,7 +96,7 @@
     });
 
     async function loadGallery() {
-      const url = `https://www.googleapis.com/drive/v3/files?q='${DRIVE_FOLDER_ID}'+in+parents+and+mimeType+contains+'image/'+and+trashed=false&orderBy=createdTime+desc&fields=files(id,name)&key=${DRIVE_API_KEY}`;
+      const url = `https://www.googleapis.com/drive/v3/files?q='${DRIVE_FOLDER_ID}'+in+parents+and+mimeType+contains+'image/'+and+trashed=false&orderBy=createdTime+desc&fields=files(id,name,thumbnailLink)&key=${DRIVE_API_KEY}`;
 
       try {
         const res = await fetch(url);
@@ -113,7 +113,7 @@
 
         files.forEach(file => {
           const img = document.createElement('img');
-          img.src = `https://lh3.googleusercontent.com/d/${file.id}=w800`;
+          img.src = file.thumbnailLink.replace(/=s\d+$/, '=s1600');
           img.alt = file.name;
           img.loading = 'lazy';
           galleryGrid.appendChild(img);
