@@ -37,64 +37,9 @@
   <!-- GALLERY -->
   <section class="section section-light">
     <div class="container">
-      <p class="section-intro">Photos coming soon! Check back after our first tournament.</p>
+      <p class="section-intro" id="galleryIntro">Loading photos&hellip;</p>
 
-      <div class="gallery-grid">
-        <div class="gallery-placeholder">
-          <div class="gallery-placeholder-inner">
-            <span class="gallery-placeholder-icon">📸</span>
-            <span>Photo Coming Soon</span>
-          </div>
-        </div>
-        <div class="gallery-placeholder">
-          <div class="gallery-placeholder-inner">
-            <span class="gallery-placeholder-icon">📸</span>
-            <span>Photo Coming Soon</span>
-          </div>
-        </div>
-        <div class="gallery-placeholder">
-          <div class="gallery-placeholder-inner">
-            <span class="gallery-placeholder-icon">📸</span>
-            <span>Photo Coming Soon</span>
-          </div>
-        </div>
-        <div class="gallery-placeholder">
-          <div class="gallery-placeholder-inner">
-            <span class="gallery-placeholder-icon">📸</span>
-            <span>Photo Coming Soon</span>
-          </div>
-        </div>
-        <div class="gallery-placeholder">
-          <div class="gallery-placeholder-inner">
-            <span class="gallery-placeholder-icon">📸</span>
-            <span>Photo Coming Soon</span>
-          </div>
-        </div>
-        <div class="gallery-placeholder">
-          <div class="gallery-placeholder-inner">
-            <span class="gallery-placeholder-icon">📸</span>
-            <span>Photo Coming Soon</span>
-          </div>
-        </div>
-        <div class="gallery-placeholder">
-          <div class="gallery-placeholder-inner">
-            <span class="gallery-placeholder-icon">📸</span>
-            <span>Photo Coming Soon</span>
-          </div>
-        </div>
-        <div class="gallery-placeholder">
-          <div class="gallery-placeholder-inner">
-            <span class="gallery-placeholder-icon">📸</span>
-            <span>Photo Coming Soon</span>
-          </div>
-        </div>
-        <div class="gallery-placeholder">
-          <div class="gallery-placeholder-inner">
-            <span class="gallery-placeholder-icon">📸</span>
-            <span>Photo Coming Soon</span>
-          </div>
-        </div>
-      </div>
+      <div class="gallery-grid" id="galleryGrid"></div>
     </div>
   </section>
 
@@ -116,39 +61,76 @@
   </footer>
 
   <script>
-    // Lightbox — wires up real images only (not placeholders)
+    const DRIVE_FOLDER_ID = '1x-sN78rp3dFqZZcCFRF6e5w7DS5oets6';
+    const DRIVE_API_KEY = 'AIzaSyDyB8Ow41a3o7h2sHSi8NQq_yrJhmMPJS0';
+
+    const galleryGrid = document.getElementById('galleryGrid');
+    const galleryIntro = document.getElementById('galleryIntro');
+
     const lightbox = document.getElementById('lightbox');
     const lightboxImg = document.getElementById('lightboxImg');
-    const imgs = Array.from(document.querySelectorAll('.gallery-grid img'));
+    let imgs = [];
     let current = 0;
 
-    imgs.forEach((img, i) => {
-      img.style.cursor = 'pointer';
-      img.addEventListener('click', () => { current = i; open(); });
-    });
-
-    function open() {
+    function openLightbox() {
       lightboxImg.src = imgs[current].src;
       lightboxImg.alt = imgs[current].alt;
       lightbox.classList.add('active');
       document.body.style.overflow = 'hidden';
     }
 
-    function close() {
+    function closeLightbox() {
       lightbox.classList.remove('active');
       document.body.style.overflow = '';
     }
 
-    document.getElementById('lightboxClose').addEventListener('click', close);
-    document.getElementById('lightboxPrev').addEventListener('click', () => { current = (current - 1 + imgs.length) % imgs.length; open(); });
-    document.getElementById('lightboxNext').addEventListener('click', () => { current = (current + 1) % imgs.length; open(); });
-    lightbox.addEventListener('click', e => { if (e.target === lightbox) close(); });
+    document.getElementById('lightboxClose').addEventListener('click', closeLightbox);
+    document.getElementById('lightboxPrev').addEventListener('click', () => { current = (current - 1 + imgs.length) % imgs.length; openLightbox(); });
+    document.getElementById('lightboxNext').addEventListener('click', () => { current = (current + 1) % imgs.length; openLightbox(); });
+    lightbox.addEventListener('click', e => { if (e.target === lightbox) closeLightbox(); });
     document.addEventListener('keydown', e => {
       if (!lightbox.classList.contains('active')) return;
-      if (e.key === 'Escape') close();
-      if (e.key === 'ArrowLeft') { current = (current - 1 + imgs.length) % imgs.length; open(); }
-      if (e.key === 'ArrowRight') { current = (current + 1) % imgs.length; open(); }
+      if (e.key === 'Escape') closeLightbox();
+      if (e.key === 'ArrowLeft') { current = (current - 1 + imgs.length) % imgs.length; openLightbox(); }
+      if (e.key === 'ArrowRight') { current = (current + 1) % imgs.length; openLightbox(); }
     });
+
+    async function loadGallery() {
+      const url = `https://www.googleapis.com/drive/v3/files?q='${DRIVE_FOLDER_ID}'+in+parents+and+mimeType+contains+'image/'+and+trashed=false&orderBy=createdTime+desc&fields=files(id,name)&key=${DRIVE_API_KEY}`;
+
+      try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('Drive API request failed');
+        const data = await res.json();
+        const files = data.files || [];
+
+        if (files.length === 0) {
+          galleryIntro.textContent = 'Photos coming soon! Check back after our first tournament.';
+          return;
+        }
+
+        galleryIntro.textContent = 'Game day moments from the Southern Reign family.';
+
+        files.forEach(file => {
+          const img = document.createElement('img');
+          img.src = `https://lh3.googleusercontent.com/d/${file.id}=w800`;
+          img.alt = file.name;
+          img.loading = 'lazy';
+          galleryGrid.appendChild(img);
+        });
+
+        imgs = Array.from(galleryGrid.querySelectorAll('img'));
+        imgs.forEach((img, i) => {
+          img.style.cursor = 'pointer';
+          img.addEventListener('click', () => { current = i; openLightbox(); });
+        });
+      } catch (err) {
+        galleryIntro.textContent = 'Photos coming soon! Check back after our first tournament.';
+        console.error('Gallery load failed:', err);
+      }
+    }
+
+    loadGallery();
   </script>
 
 </body>
