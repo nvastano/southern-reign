@@ -70,6 +70,34 @@ nav ul a {
 }
 nav ul a:hover { opacity: 1; color: var(--yellow); }
 
+.nav-toggle {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  width: 32px;
+  height: 32px;
+  position: relative;
+}
+.nav-toggle span,
+.nav-toggle span::before,
+.nav-toggle span::after {
+  display: block;
+  position: absolute;
+  left: 4px;
+  width: 24px;
+  height: 2px;
+  background: var(--white);
+  transition: transform 0.2s, opacity 0.2s, top 0.2s;
+}
+.nav-toggle span { top: 15px; }
+.nav-toggle span::before { content: ''; top: -8px; }
+.nav-toggle span::after { content: ''; top: 8px; }
+.nav-toggle.active span { opacity: 0; }
+.nav-toggle.active span::before { top: 0; transform: rotate(45deg); }
+.nav-toggle.active span::after { top: 0; transform: rotate(-45deg); }
+
 /* HERO */
 .hero {
   padding-top: 64px;
@@ -498,7 +526,29 @@ footer p { margin-bottom: 4px; }
 
 /* RESPONSIVE */
 @media (max-width: 640px) {
-  nav ul { gap: 16px; }
-  nav ul a { font-size: 0.82rem; }
   .hero-logo { width: 220px; }
+
+  .nav-toggle { display: block; }
+
+  nav ul {
+    position: absolute;
+    top: 64px;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    background: var(--blue-dark);
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.25s ease;
+  }
+  nav ul.active { max-height: 320px; }
+  nav ul li { width: 100%; text-align: center; }
+  nav ul a {
+    display: block;
+    padding: 16px 24px;
+    font-size: 1rem;
+    border-top: 1px solid rgba(255,255,255,0.1);
+  }
 }
