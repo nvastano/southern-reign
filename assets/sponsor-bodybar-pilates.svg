@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300">
+  <!-- Background -->
+  <rect width="400" height="300" fill="white"/>
+
+  <!-- Dumbbell / heartbeat icon -->
+  <!-- Left weight spikes -->
+  <polyline points="128,118 138,98 143,118 148,88 153,118 158,108 163,118"
+    fill="none" stroke="#4ec9c0" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
+  <!-- Connecting bar -->
+  <line x1="163" y1="118" x2="237" y2="118"
+    stroke="#4ec9c0" stroke-width="4" stroke-linecap="round"/>
+  <!-- Right weight spikes -->
+  <polyline points="237,118 242,108 247,118 252,88 257,118 262,98 272,118"
+    fill="none" stroke="#4ec9c0" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
+
+  <!-- BODYBAR text -->
+  <text x="200" y="182"
+    font-family="'Helvetica Neue', Arial, sans-serif"
+    font-weight="300"
+    font-size="52"
+    fill="#6b6b6b"
+    text-anchor="middle"
+    letter-spacing="6">BODYBAR</text>
+
+  <!-- PILATES text -->
+  <text x="200" y="214"
+    font-family="'Helvetica Neue', Arial, sans-serif"
+    font-weight="300"
+    font-size="22"
+    fill="#aaaaaa"
+    text-anchor="middle"
+    letter-spacing="10">PILATES</text>
+</svg>
