@@ -8,7 +8,6 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet" />
   <link rel="apple-touch-icon" href="assets/logo.jpg" />
   <link rel="manifest" href="site.webmanifest" />
   <meta name="theme-color" content="#143f8a" />
@@ -30,150 +29,41 @@
     </div>
   </nav>
 
-  <!-- ROSTER -->
-  <div class="roster-card">
-
-    <div class="roster-header">
-      <img src="assets/logo.jpg" alt="Southern Reign" class="roster-logo" />
-      <div class="roster-label">8U Travel Baseball</div>
-      <div class="roster-title">ROSTER</div>
-      <div class="roster-season">2026–2027 Season</div>
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+    <div class="container">
+      <h1>2026–2027 Roster</h1>
+      <p>8U Travel Baseball &bull; Spring Hill, Tennessee</p>
     </div>
-
-    <div class="roster-body">
-      <div class="roster-row"><span class="rn">1</span><span class="rname">Joey Kushnir</span></div>
-      <div class="roster-row"><span class="rn">3</span><span class="rname">Jackson Vastano</span></div>
-      <div class="roster-row"><span class="rn">5</span><span class="rname">Braylon DiMarco</span></div>
-      <div class="roster-row"><span class="rn">8</span><span class="rname">Ryker Pasquale</span></div>
-      <div class="roster-row"><span class="rn">10</span><span class="rname">Reeves Summers</span></div>
-      <div class="roster-row"><span class="rn">12</span><span class="rname">Jacob Irvine</span></div>
-      <div class="roster-row"><span class="rn">44</span><span class="rname">Jack Moore</span></div>
-      <div class="roster-row"><span class="rn">23</span><span class="rname">Colton Whited</span></div>
-      <div class="roster-row"><span class="rn">30</span><span class="rname">Sutton Beal</span></div>
-      <div class="roster-row"><span class="rn">38</span><span class="rname">Ford Henry</span></div>
-      <div class="roster-row"><span class="rn">45</span><span class="rname">Colt Henry</span></div>
-      <div class="roster-row"><span class="rn">99</span><span class="rname">Wilder Strong</span></div>
-    </div>
-
-    <div class="roster-footer">Team. Together. Reign.</div>
-
   </div>
 
-  <style>
-    body { background: #0e2a6e; }
+  <!-- ROSTER -->
+  <section class="section section-dark">
+    <div class="container">
+      <div class="roster-wrap">
 
-    .roster-card {
-      max-width: 520px;
-      margin: 80px auto 0;
-      background: linear-gradient(170deg, #1a3fa3 0%, #0e2a6e 60%, #091d52 100%);
-      overflow: hidden;
-      font-family: 'Oswald', sans-serif;
-    }
+        <div class="roster-season-badge">2026–2027 Season</div>
 
-    .roster-header {
-      text-align: center;
-      padding: 32px 24px 20px;
-      position: relative;
-    }
+        <div class="roster-list">
+          <div class="roster-row"><span class="rn">1</span><span class="rname">Joey Kushnir</span></div>
+          <div class="roster-row"><span class="rn">3</span><span class="rname">Jackson Vastano</span></div>
+          <div class="roster-row"><span class="rn">5</span><span class="rname">Braylon DiMarco</span></div>
+          <div class="roster-row"><span class="rn">8</span><span class="rname">Ryker Pasquale</span></div>
+          <div class="roster-row"><span class="rn">10</span><span class="rname">Reeves Summers</span></div>
+          <div class="roster-row"><span class="rn">12</span><span class="rname">Jacob Irvine</span></div>
+          <div class="roster-row"><span class="rn">23</span><span class="rname">Colton Whited</span></div>
+          <div class="roster-row"><span class="rn">30</span><span class="rname">Sutton Beal</span></div>
+          <div class="roster-row"><span class="rn">38</span><span class="rname">Ford Henry</span></div>
+          <div class="roster-row"><span class="rn">44</span><span class="rname">Jack Moore</span></div>
+          <div class="roster-row"><span class="rn">45</span><span class="rname">Colt Henry</span></div>
+          <div class="roster-row"><span class="rn">99</span><span class="rname">Wilder Strong</span></div>
+        </div>
 
-    .roster-logo {
-      width: 130px;
-      border-radius: 50%;
-      box-shadow: 0 0 0 4px rgba(200,228,40,0.5);
-      margin-bottom: 14px;
-      display: block;
-      margin-left: auto;
-      margin-right: auto;
-    }
+        <div class="roster-tagline">Team. Together. Reign.</div>
 
-    .roster-label {
-      color: var(--yellow);
-      font-size: 0.85rem;
-      letter-spacing: 0.22em;
-      text-transform: uppercase;
-      margin-bottom: 6px;
-      opacity: 0.9;
-    }
-
-    .roster-title {
-      font-family: 'Bebas Neue', 'Oswald', sans-serif;
-      font-size: clamp(4rem, 18vw, 6.5rem);
-      color: #fff;
-      line-height: 0.88;
-      letter-spacing: 0.04em;
-      text-shadow: 4px 4px 0 rgba(0,0,0,0.4), 0 0 40px rgba(200,228,40,0.15);
-    }
-
-    .roster-season {
-      display: inline-block;
-      background: var(--yellow);
-      color: #0e2a6e;
-      font-size: 1rem;
-      font-weight: 700;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      padding: 6px 24px;
-      margin-top: 12px;
-    }
-
-    .roster-body {
-      padding: 24px 28px 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 7px;
-    }
-
-    .roster-row {
-      display: flex;
-      align-items: center;
-      gap: 0;
-      background: rgba(255,255,255,0.06);
-      border-left: 4px solid var(--yellow);
-      border-radius: 3px;
-      overflow: hidden;
-      transition: background 0.15s;
-    }
-
-    .roster-row:hover { background: rgba(200,228,40,0.12); }
-
-    .rn {
-      min-width: 52px;
-      text-align: center;
-      font-size: 1.3rem;
-      font-weight: 700;
-      color: var(--yellow);
-      background: rgba(0,0,0,0.25);
-      padding: 10px 0;
-      letter-spacing: 0.02em;
-    }
-
-    .rname {
-      flex: 1;
-      padding: 10px 16px;
-      font-size: 1.1rem;
-      font-weight: 600;
-      color: #fff;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-    }
-
-    .roster-footer {
-      background: var(--yellow);
-      color: #0e2a6e;
-      text-align: center;
-      font-family: 'Oswald', sans-serif;
-      font-size: 1.2rem;
-      font-weight: 700;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      padding: 14px;
-      font-style: italic;
-    }
-
-    @media (max-width: 560px) {
-      .roster-card { margin-top: 64px; }
-    }
-  </style>
+      </div>
+    </div>
+  </section>
 
   <!-- FOOTER -->
   <footer>
@@ -183,6 +73,88 @@
       <p>SouthernReignBaseball@gmail.com</p>
     </div>
   </footer>
+
+  <style>
+    .roster-wrap {
+      max-width: 640px;
+      margin: 0 auto;
+    }
+
+    .roster-season-badge {
+      display: inline-block;
+      background: var(--yellow);
+      color: var(--blue-dark);
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 6px 20px;
+      border-radius: 2px;
+      margin-bottom: 28px;
+    }
+
+    .roster-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .roster-row {
+      display: flex;
+      align-items: stretch;
+      border-radius: 4px;
+      overflow: hidden;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      transition: background 0.15s, transform 0.15s;
+    }
+
+    .roster-row:hover {
+      background: rgba(200,228,40,0.1);
+      transform: translateX(4px);
+    }
+
+    .rn {
+      min-width: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Oswald', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--yellow);
+      background: rgba(0,0,0,0.3);
+      border-right: 3px solid var(--yellow);
+      padding: 14px 0;
+    }
+
+    .rname {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      padding: 14px 20px;
+      font-family: 'Oswald', sans-serif;
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: #fff;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .roster-tagline {
+      margin-top: 32px;
+      text-align: center;
+      font-family: 'Oswald', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--yellow);
+      opacity: 0.8;
+      font-style: italic;
+    }
+  </style>
 
   <script src="nav.js"></script>
 </body>
