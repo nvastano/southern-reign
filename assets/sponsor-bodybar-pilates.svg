@@ -1,17 +1,17 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 180" width="400" height="180">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 240" width="400" height="240">
   <!-- Background -->
-  <rect width="400" height="180" fill="white"/>
+  <rect width="400" height="240" fill="white"/>
 
   <!-- Dumbbell / heartbeat icon -->
-  <polyline points="128,52 138,32 143,52 148,18 153,52 158,42 163,52"
+  <polyline points="128,82 138,62 143,82 148,42 153,82 158,72 163,82"
     fill="none" stroke="#4ec9c0" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round"/>
-  <line x1="163" y1="52" x2="237" y2="52"
+  <line x1="163" y1="82" x2="237" y2="82"
     stroke="#4ec9c0" stroke-width="4.5" stroke-linecap="round"/>
-  <polyline points="237,52 242,42 247,52 252,18 257,52 262,32 272,52"
+  <polyline points="237,82 242,72 247,82 252,42 257,82 262,62 272,82"
     fill="none" stroke="#4ec9c0" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round"/>
 
   <!-- BODYBAR text -->
-  <text x="200" y="116"
+  <text x="200" y="158"
     font-family="'Helvetica Neue', Arial, sans-serif"
     font-weight="300"
     font-size="52"
@@ -20,7 +20,7 @@
     letter-spacing="6">BODYBAR</text>
 
   <!-- PILATES text -->
-  <text x="200" y="150"
+  <text x="200" y="194"
     font-family="'Helvetica Neue', Arial, sans-serif"
     font-weight="300"
     font-size="22"
