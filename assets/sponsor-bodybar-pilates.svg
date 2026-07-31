@@ -1,20 +1,17 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 180" width="400" height="180">
   <!-- Background -->
-  <rect width="400" height="300" fill="white"/>
+  <rect width="400" height="180" fill="white"/>
 
   <!-- Dumbbell / heartbeat icon -->
-  <!-- Left weight spikes -->
-  <polyline points="128,118 138,98 143,118 148,88 153,118 158,108 163,118"
-    fill="none" stroke="#4ec9c0" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
-  <!-- Connecting bar -->
-  <line x1="163" y1="118" x2="237" y2="118"
-    stroke="#4ec9c0" stroke-width="4" stroke-linecap="round"/>
-  <!-- Right weight spikes -->
-  <polyline points="237,118 242,108 247,118 252,88 257,118 262,98 272,118"
-    fill="none" stroke="#4ec9c0" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="128,52 138,32 143,52 148,18 153,52 158,42 163,52"
+    fill="none" stroke="#4ec9c0" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round"/>
+  <line x1="163" y1="52" x2="237" y2="52"
+    stroke="#4ec9c0" stroke-width="4.5" stroke-linecap="round"/>
+  <polyline points="237,52 242,42 247,52 252,18 257,52 262,32 272,52"
+    fill="none" stroke="#4ec9c0" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round"/>
 
   <!-- BODYBAR text -->
-  <text x="200" y="182"
+  <text x="200" y="116"
     font-family="'Helvetica Neue', Arial, sans-serif"
     font-weight="300"
     font-size="52"
@@ -23,7 +20,7 @@
     letter-spacing="6">BODYBAR</text>
 
   <!-- PILATES text -->
-  <text x="200" y="214"
+  <text x="200" y="150"
     font-family="'Helvetica Neue', Arial, sans-serif"
     font-weight="300"
     font-size="22"
