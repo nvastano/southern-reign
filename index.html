@@ -21,6 +21,7 @@
       <button class="nav-toggle" id="navToggle" aria-label="Toggle menu"><span></span></button>
       <ul id="navLinks">
         <li><a href="#about">About</a></li>
+        <li><a href="#schedule">Schedule</a></li>
         <li><a href="roster.html">Roster</a></li>
         <li><a href="gallery.html">Gallery</a></li>
         <li><a href="sponsors.html">Sponsors</a></li>
@@ -95,6 +96,15 @@
     </div>
   </section>
 
+  <!-- SCHEDULE -->
+  <section id="schedule" class="section section-light">
+    <div class="container">
+      <h2>Schedule</h2>
+      <p class="section-intro">Stay up to date with our upcoming games and tournaments.</p>
+      <div id="gc-schedule-widget-ehk6"></div>
+    </div>
+  </section>
+
   <!-- CONTACT -->
   <section id="contact" class="section section-light">
     <div class="container contact-container">
@@ -123,5 +133,13 @@
   </footer>
 
   <script src="nav.js"></script>
+  <script src="https://widgets.gc.com/static/js/sdk.v1.js"></script>
+  <script>
+    window.GC.team.schedule.init({
+      target: "#gc-schedule-widget-ehk6",
+      widgetId: "0a21a8d3-c491-4524-b10e-0a7465d0aceb",
+      maxVerticalGamesVisible: 4,
+    });
+  </script>
 </body>
 </html>
