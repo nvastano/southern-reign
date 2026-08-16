@@ -105,6 +105,27 @@
     </div>
   </section>
 
+  <!-- FACEBOOK FEED -->
+  <section class="section section-dark">
+    <div class="container" style="text-align:center;">
+      <h2>Follow Along</h2>
+      <p class="section-intro" style="margin-bottom:32px;">Stay up to date with the latest posts, photos, and announcements from our Facebook page.</p>
+      <div id="fb-root"></div>
+      <div style="display:flex; justify-content:center;">
+        <div class="fb-page"
+          data-href="https://www.facebook.com/profile.php?id=61590317313699"
+          data-tabs="timeline"
+          data-width="500"
+          data-height="600"
+          data-small-header="false"
+          data-adapt-container-width="true"
+          data-hide-cover="false"
+          data-show-facepile="true">
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- CONTACT -->
   <section id="contact" class="section section-light">
     <div class="container contact-container">
@@ -133,6 +154,7 @@
   </footer>
 
   <script src="nav.js"></script>
+  <script async defer crossorigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v21.0"></script>
   <script src="https://widgets.gc.com/static/js/sdk.v1.js"></script>
   <script>
     window.GC.team.schedule.init({
