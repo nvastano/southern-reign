@@ -110,18 +110,17 @@
     <div class="container" style="text-align:center;">
       <h2>Follow Along</h2>
       <p class="section-intro" style="margin-bottom:32px;">Stay up to date with the latest posts, photos, and announcements from our Facebook page.</p>
-      <div id="fb-root"></div>
       <div style="display:flex; justify-content:center;">
-        <div class="fb-page"
-          data-href="https://www.facebook.com/profile.php?id=61590317313699"
-          data-tabs="timeline"
-          data-width="500"
-          data-height="600"
-          data-small-header="false"
-          data-adapt-container-width="true"
-          data-hide-cover="false"
-          data-show-facepile="true">
-        </div>
+        <iframe
+          src="https://www.facebook.com/plugins/page.php?href=https%3A%2F%2Fwww.facebook.com%2Fprofile.php%3Fid%3D61590317313699&tabs=timeline&width=500&height=600&small_header=false&adapt_container_width=true&hide_cover=false&show_facepile=true"
+          width="500"
+          height="600"
+          style="border:none; overflow:hidden; max-width:100%;"
+          scrolling="no"
+          frameborder="0"
+          allowfullscreen="true"
+          allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share">
+        </iframe>
       </div>
     </div>
   </section>
@@ -154,8 +153,7 @@
   </footer>
 
   <script src="nav.js"></script>
-  <script async defer crossorigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v21.0"></script>
-  <script src="https://widgets.gc.com/static/js/sdk.v1.js"></script>
+<script src="https://widgets.gc.com/static/js/sdk.v1.js"></script>
   <script>
     window.GC.team.schedule.init({
       target: "#gc-schedule-widget-ehk6",
