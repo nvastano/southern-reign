@@ -327,9 +327,11 @@ export default {
       return json({ error: 'Not found' }, request, env, 404);
     } catch (err) {
       const status = err.status || 500;
-      // Never leak internals (including Google errors) to the browser.
-      const message = status === 500 ? 'Something went wrong. Please try again.' : err.message;
       if (status === 500) console.error(err);
+      // Never leak internals (including Google errors) to the browser, unless
+      // DEBUG_ERRORS is switched on for troubleshooting. Turn it back off after.
+      const verbose = status !== 500 || String(env.DEBUG_ERRORS) === 'true';
+      const message = verbose ? err.message : 'Something went wrong. Please try again.';
       return json({ error: message }, request, env, status);
     }
   },
