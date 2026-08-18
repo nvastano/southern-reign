@@ -101,13 +101,13 @@
   function productRow(p) {
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td><input type="text" data-f="name" value="${esc(p.name)}" /></td>
-      <td><input type="number" data-f="price" step="0.01" min="0" value="${esc(p.price)}" style="min-width:80px;" /></td>
-      <td><input type="text" data-f="category" value="${esc(p.category)}" /></td>
-      <td><input type="text" data-f="sizes" value="${esc((p.sizes || []).join(', '))}" placeholder="YS, YM, YL, S, M, L" /></td>
-      <td><input type="text" data-f="colors" value="${esc((p.colors || []).join(', '))}" placeholder="Navy, White" /></td>
-      <td><input type="text" data-f="description" value="${esc(p.description)}" /></td>
-      <td>
+      <td data-label="Name"><input type="text" data-f="name" value="${esc(p.name)}" /></td>
+      <td data-label="Price"><input type="number" data-f="price" step="0.01" min="0" value="${esc(p.price)}" style="min-width:80px;" /></td>
+      <td data-label="Category"><input type="text" data-f="category" value="${esc(p.category)}" /></td>
+      <td data-label="Sizes"><input type="text" data-f="sizes" value="${esc((p.sizes || []).join(', '))}" placeholder="YS, YM, YL, S, M, L" /></td>
+      <td data-label="Colors"><input type="text" data-f="colors" value="${esc((p.colors || []).join(', '))}" placeholder="Navy, White" /></td>
+      <td data-label="Description"><input type="text" data-f="description" value="${esc(p.description)}" /></td>
+      <td data-label="Image">
         <div class="img-cell">
           <img class="img-thumb${p.image ? '' : ' empty'}" data-f="thumb" src="${esc(p.image)}" alt="" />
           <div class="img-controls">
@@ -117,8 +117,8 @@
           </div>
         </div>
       </td>
-      <td style="text-align:center;"><input type="checkbox" data-f="active" ${p.active !== false ? 'checked' : ''} /></td>
-      <td><button class="btn-sm danger" data-f="remove">&times;</button></td>`;
+      <td class="cell-active" data-label="Active"><input type="checkbox" data-f="active" ${p.active !== false ? 'checked' : ''} /></td>
+      <td class="cell-remove"><button class="btn-sm danger" data-f="remove"><span class="rm-x">&times;</span><span class="rm-text">Delete Product</span></button></td>`;
     tr.dataset.id = p.id || '';
     tr.querySelector('[data-f="remove"]').addEventListener('click', () => tr.remove());
     wireImageCell(tr);
@@ -238,18 +238,18 @@
       }
       orderRows.innerHTML = orders.slice().reverse().map(o => `
         <tr>
-          <td>${esc(o.orderId)}</td>
-          <td>${esc((o.timestamp || '').slice(0, 10))}</td>
-          <td>${esc(o.parentName)}</td>
-          <td>${esc(o.email)}</td>
-          <td>${esc(o.phone)}</td>
-          <td>${esc(o.playerName)}</td>
-          <td>${esc(o.item)}</td>
-          <td>${esc(o.size)}</td>
-          <td>${esc(o.color)}</td>
-          <td>${esc(o.qty)}</td>
-          <td>$${esc(o.lineTotal)}</td>
-          <td>${esc(o.notes)}</td>
+          <td data-label="Order #">${esc(o.orderId)}</td>
+          <td data-label="Date">${esc((o.timestamp || '').slice(0, 10))}</td>
+          <td data-label="Parent">${esc(o.parentName)}</td>
+          <td data-label="Email">${esc(o.email)}</td>
+          <td data-label="Phone">${esc(o.phone)}</td>
+          <td data-label="Player">${esc(o.playerName)}</td>
+          <td data-label="Item">${esc(o.item)}</td>
+          <td data-label="Size">${esc(o.size)}</td>
+          <td data-label="Color">${esc(o.color)}</td>
+          <td data-label="Qty">${esc(o.qty)}</td>
+          <td data-label="Total">$${esc(o.lineTotal)}</td>
+          <td data-label="Notes">${esc(o.notes)}</td>
         </tr>`).join('');
     } catch (err) {
       orderRows.innerHTML = '';

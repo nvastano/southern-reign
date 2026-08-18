@@ -288,3 +288,69 @@
 .btn-sm.danger { background: #c0392b; padding: 6px 11px; }
 .btn-sm.danger:hover { background: #a02a1e; }
 .btn-sm:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.rm-text { display: none; }
+
+/* ===== ADMIN ON SMALL SCREENS =====
+   The tables are too wide to scroll usefully on a phone, so each row
+   becomes its own labelled card. */
+@media (max-width: 760px) {
+  .admin-table-wrap {
+    overflow-x: visible;
+    border: none;
+    background: transparent;
+    border-radius: 0;
+  }
+  .admin-table { display: block; min-width: 0; font-size: 0.92rem; }
+  .admin-table thead { display: none; }
+  .admin-table tbody, .admin-table tr, .admin-table td { display: block; width: 100%; }
+
+  .admin-table tr {
+    background: var(--white);
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 6px 16px 16px;
+    margin-bottom: 16px;
+  }
+  .admin-table tr:hover td { background: transparent; }
+
+  .admin-table td { border-bottom: none; padding: 9px 0; }
+  .admin-table td::before {
+    content: attr(data-label);
+    display: block;
+    font-family: 'Oswald', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--text-light);
+    margin-bottom: 5px;
+  }
+  .admin-table td:not([data-label])::before { display: none; }
+
+  /* Inputs get a real tap target; 16px stops iOS zooming on focus. */
+  .admin-table input[type="text"],
+  .admin-table input[type="number"] {
+    font-size: 16px;
+    padding: 11px 12px;
+    min-width: 0;
+  }
+
+  /* Active: label and checkbox on one line. */
+  .cell-active { display: flex !important; align-items: center; gap: 10px; }
+  .cell-active::before { margin-bottom: 0; }
+  .cell-active input[type="checkbox"] { width: 22px; height: 22px; }
+
+  .cell-remove .btn-sm.danger { width: 100%; padding: 11px; }
+  .rm-x { display: none; }
+  .rm-text { display: inline; }
+
+  .img-cell { min-width: 0; }
+  .img-thumb { width: 60px; height: 60px; }
+
+  .admin-bar { flex-direction: column; align-items: stretch; }
+  .admin-bar > div { display: flex; gap: 8px; }
+  .admin-bar > div .btn-sm { flex: 1; padding: 12px; }
+
+  .admin-tab { padding: 11px 14px; font-size: 0.85rem; }
+}
