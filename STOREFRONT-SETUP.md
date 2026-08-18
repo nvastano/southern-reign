@@ -98,8 +98,30 @@ Commit and push. That's it.
 Go to `/store-admin.html`, sign in with `ADMIN_PASSWORD`, and add products in the
 Products tab. Click **Save Changes** and they appear on the store immediately.
 
-For product photos, drop images in `assets/` and use a relative path like
-`assets/gear-hoodie.jpg` in the Image URL column.
+For product photos, click **Upload** in the Image column and pick a file from your
+computer. You can also paste a URL, or use a repo path like `assets/gear-hoodie.jpg`
+for images committed to the site.
+
+## Product image uploads
+
+Uploaded images are stored in a Cloudflare KV namespace and served back by the Worker.
+Create it once:
+
+```bash
+wrangler kv namespace create IMAGES
+```
+
+Paste the printed id into the `kv_namespaces` block in `wrangler.toml` (uncomment it)
+and redeploy. In the dashboard instead: **Storage & Databases → KV → Create**, name it
+`store-images`, then on the Worker go to **Settings → Bindings → Add → KV namespace**
+with the variable name **`IMAGES`**.
+
+Limits: JPG, PNG, WebP, and GIF up to 5 MB each. Uploads require an admin session.
+Images are served from `/api/images/<id>` with a one-year immutable cache — every
+upload gets a fresh id, so replacing a photo never serves a stale one.
+
+Until the namespace is bound, the Upload button reports that uploads aren't configured
+and the URL field keeps working as before.
 
 ---
 

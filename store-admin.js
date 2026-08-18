@@ -107,12 +107,67 @@
       <td><input type="text" data-f="sizes" value="${esc((p.sizes || []).join(', '))}" placeholder="YS, YM, YL, S, M, L" /></td>
       <td><input type="text" data-f="colors" value="${esc((p.colors || []).join(', '))}" placeholder="Navy, White" /></td>
       <td><input type="text" data-f="description" value="${esc(p.description)}" /></td>
-      <td><input type="text" data-f="image" value="${esc(p.image)}" placeholder="assets/gear-hat.jpg" /></td>
+      <td>
+        <div class="img-cell">
+          <img class="img-thumb${p.image ? '' : ' empty'}" data-f="thumb" src="${esc(p.image)}" alt="" />
+          <div class="img-controls">
+            <button type="button" class="btn-sm secondary" data-f="pick">Upload</button>
+            <input type="file" data-f="file" accept="image/jpeg,image/png,image/webp,image/gif" hidden />
+            <input type="text" data-f="image" value="${esc(p.image)}" placeholder="or paste a URL" />
+          </div>
+        </div>
+      </td>
       <td style="text-align:center;"><input type="checkbox" data-f="active" ${p.active !== false ? 'checked' : ''} /></td>
       <td><button class="btn-sm danger" data-f="remove">&times;</button></td>`;
     tr.dataset.id = p.id || '';
     tr.querySelector('[data-f="remove"]').addEventListener('click', () => tr.remove());
+    wireImageCell(tr);
     return tr;
+  }
+
+  /* keep the thumbnail in step with whatever the URL field says */
+  function syncThumb(tr) {
+    const url = tr.querySelector('[data-f="image"]').value.trim();
+    const thumb = tr.querySelector('[data-f="thumb"]');
+    thumb.src = url;
+    thumb.classList.toggle('empty', !url);
+  }
+
+  function wireImageCell(tr) {
+    const pick = tr.querySelector('[data-f="pick"]');
+    const file = tr.querySelector('[data-f="file"]');
+    const urlInput = tr.querySelector('[data-f="image"]');
+
+    urlInput.addEventListener('change', () => syncThumb(tr));
+    pick.addEventListener('click', () => file.click());
+
+    file.addEventListener('change', async () => {
+      const chosen = file.files && file.files[0];
+      if (!chosen) return;
+
+      const original = pick.textContent;
+      pick.disabled = true;
+      pick.textContent = 'Uploading…';
+      try {
+        const res = await fetch(`${API}/api/admin/upload`, {
+          method: 'POST',
+          headers: { 'Content-Type': chosen.type, Authorization: `Bearer ${token}` },
+          body: chosen,
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Upload failed');
+
+        urlInput.value = data.url;
+        syncThumb(tr);
+        notify('Image uploaded. Click Save Changes to keep it.');
+      } catch (err) {
+        notify(err.message, 'error');
+      } finally {
+        pick.disabled = false;
+        pick.textContent = original;
+        file.value = '';
+      }
+    });
   }
 
   function collectProducts() {

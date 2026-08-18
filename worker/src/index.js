@@ -19,6 +19,14 @@ const PRODUCTS_RANGE = 'Products!A2:I';
 const ORDERS_RANGE = 'Orders!A:N';
 const SESSION_TTL_SECONDS = 60 * 60 * 8; // 8 hours
 
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+const IMAGE_TYPES = {
+  'image/jpeg': 'jpg',
+  'image/png': 'png',
+  'image/webp': 'webp',
+  'image/gif': 'gif',
+};
+
 /* ------------------------------------------------------------------ */
 /* helpers                                                             */
 /* ------------------------------------------------------------------ */
@@ -302,6 +310,50 @@ async function getOrders(env) {
 }
 
 /* ------------------------------------------------------------------ */
+/* product images (Cloudflare KV)                                      */
+/* ------------------------------------------------------------------ */
+
+async function uploadImage(request, env) {
+  const bad = msg => { throw Object.assign(new Error(msg), { status: 400 }); };
+
+  if (!env.IMAGES) {
+    throw Object.assign(
+      new Error('Image uploads are not configured — the IMAGES KV namespace is not bound to this Worker.'),
+      { status: 501 }
+    );
+  }
+
+  const type = (request.headers.get('Content-Type') || '').split(';')[0].trim().toLowerCase();
+  const ext = IMAGE_TYPES[type];
+  if (!ext) bad('Please upload a JPG, PNG, WebP, or GIF image.');
+
+  const bytes = await request.arrayBuffer();
+  if (!bytes.byteLength) bad('The uploaded file was empty.');
+  if (bytes.byteLength > MAX_IMAGE_BYTES) bad('Images must be 5 MB or smaller.');
+
+  const id = `${crypto.randomUUID()}.${ext}`;
+  await env.IMAGES.put(id, bytes, { metadata: { type } });
+
+  return { id, url: `${new URL(request.url).origin}/api/images/${id}` };
+}
+
+async function serveImage(id, env, request) {
+  if (!env.IMAGES) return new Response('Not found', { status: 404 });
+
+  const { value, metadata } = await env.IMAGES.getWithMetadata(id, { type: 'arrayBuffer' });
+  if (!value) return new Response('Not found', { status: 404 });
+
+  return new Response(value, {
+    headers: {
+      'Content-Type': (metadata && metadata.type) || 'application/octet-stream',
+      // Ids are unique per upload, so these never need revalidating.
+      'Cache-Control': 'public, max-age=31536000, immutable',
+      ...corsHeaders(request, env),
+    },
+  });
+}
+
+/* ------------------------------------------------------------------ */
 /* router                                                              */
 /* ------------------------------------------------------------------ */
 
@@ -325,6 +377,10 @@ export default {
       if (path === '/api/products' && request.method === 'GET') {
         const products = (await getProducts(env)).filter(p => p.active);
         return json({ products }, request, env);
+      }
+
+      if (path.startsWith('/api/images/') && request.method === 'GET') {
+        return serveImage(decodeURIComponent(path.slice('/api/images/'.length)), env, request);
       }
 
       if (path === '/api/orders' && request.method === 'POST') {
@@ -352,6 +408,11 @@ export default {
         if (!Array.isArray(products)) throw new Error('products must be an array');
         await putProducts(env, products);
         return json({ ok: true, count: products.length }, request, env);
+      }
+
+      if (path === '/api/admin/upload' && request.method === 'POST') {
+        await requireAdmin();
+        return json(await uploadImage(request, env), request, env);
       }
 
       if (path === '/api/admin/orders' && request.method === 'GET') {
