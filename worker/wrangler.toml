@@ -4,7 +4,7 @@ compatibility_date = "2026-01-01"
 
 [vars]
 # The Google Sheet that holds the Products and Orders tabs.
-SHEET_ID = "REPLACE_WITH_YOUR_SHEET_ID"
+SHEET_ID = "1JVU0xZ4HEpArKummTX_Z2E2axJo1GQWLYIByqpX4DfE"
 
 # Origins allowed to call this API. The first one is used as the fallback.
 ALLOWED_ORIGINS = "https://www.southernreignbaseball.com,https://southernreignbaseball.com"
