@@ -250,9 +250,12 @@ async function createOrder(env, body) {
   const products = await getProducts(env);
   const byId = new Map(products.map(p => [p.id, p]));
 
+  // Bad input is the customer's to fix, so report it as 400 with a real message.
+  const reject = msg => { throw Object.assign(new Error(msg), { status: 400 }); };
+
   const items = Array.isArray(body.items) ? body.items : [];
-  if (!items.length) throw new Error('Order has no items');
-  if (!body.parentName || !body.email) throw new Error('Name and email are required');
+  if (!items.length) reject('Your order is empty — add at least one item.');
+  if (!body.parentName || !body.email) reject('Name and email are required.');
 
   const orderId = `SR-${Date.now().toString(36).toUpperCase()}`;
   const timestamp = new Date().toISOString();
@@ -262,7 +265,9 @@ async function createOrder(env, body) {
   for (const item of items) {
     const product = byId.get(item.productId);
     // Price always comes from the sheet, never from the browser.
-    if (!product || !product.active) throw new Error(`Unknown product: ${item.productId}`);
+    if (!product || !product.active) {
+      reject('One of the items is no longer available. Please refresh and try again.');
+    }
     const qty = Math.max(1, Math.min(99, parseInt(item.qty, 10) || 1));
     const lineTotal = product.price * qty;
     total += lineTotal;
