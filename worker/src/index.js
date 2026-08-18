@@ -101,12 +101,42 @@ function bearer(request) {
 /* ------------------------------------------------------------------ */
 
 function pemToArrayBuffer(pem) {
-  const body = pem
-    .replace(/\\n/g, '\n')
-    .replace(/-----BEGIN PRIVATE KEY-----/, '')
-    .replace(/-----END PRIVATE KEY-----/, '')
-    .replace(/\s+/g, '');
-  const bin = atob(body);
+  let text = String(pem || '').trim();
+
+  // Tolerate pasting the whole service-account JSON instead of just the key.
+  if (text.startsWith('{')) {
+    try {
+      const parsed = JSON.parse(text);
+      if (parsed.private_key) text = String(parsed.private_key);
+    } catch { /* fall through and fail with the clearer error below */ }
+  }
+
+  // Tolerate the value being pasted with its surrounding JSON quotes.
+  text = text.replace(/^["']|["']$/g, '').replace(/\\n/g, '\n');
+
+  if (!text.includes('BEGIN PRIVATE KEY')) {
+    throw new Error(
+      'GOOGLE_SA_KEY is not a private key. Paste the full "private_key" value ' +
+      'from the service-account JSON, including the BEGIN/END lines.'
+    );
+  }
+
+  // Keep only the base64 payload between the PEM markers, then drop anything
+  // outside the base64 alphabet (stray whitespace, newlines, escape artifacts).
+  const body = text
+    .replace(/-----BEGIN[^-]*-----/, '')
+    .replace(/-----END[^-]*-----/, '')
+    .replace(/[^A-Za-z0-9+/=]/g, '');
+
+  let bin;
+  try {
+    bin = atob(body);
+  } catch {
+    throw new Error(
+      'GOOGLE_SA_KEY could not be decoded. It was likely truncated or altered ' +
+      'when pasted — re-copy the private_key value from the JSON file.'
+    );
+  }
   const buf = new Uint8Array(bin.length);
   for (let i = 0; i < bin.length; i++) buf[i] = bin.charCodeAt(i);
   return buf.buffer;
