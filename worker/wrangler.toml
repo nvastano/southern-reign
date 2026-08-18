@@ -1,0 +1,16 @@
+name = "southern-reign-store"
+main = "src/index.js"
+compatibility_date = "2026-01-01"
+
+[vars]
+# The Google Sheet that holds the Products and Orders tabs.
+SHEET_ID = "REPLACE_WITH_YOUR_SHEET_ID"
+
+# Origins allowed to call this API. The first one is used as the fallback.
+ALLOWED_ORIGINS = "https://www.southernreignbaseball.com,https://southernreignbaseball.com"
+
+# Secrets are NOT set here. Set them with wrangler so they stay encrypted:
+#   wrangler secret put ADMIN_PASSWORD
+#   wrangler secret put SESSION_SECRET
+#   wrangler secret put GOOGLE_SA_EMAIL
+#   wrangler secret put GOOGLE_SA_KEY

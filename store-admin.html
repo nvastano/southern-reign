@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Store Admin | Southern Reign Baseball</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="store.css" />
+  <link rel="apple-touch-icon" href="assets/logo.jpg" />
+  <meta name="theme-color" content="#143f8a" />
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <div class="nav-inner">
+      <a href="index.html" class="nav-brand">Southern Reign</a>
+      <ul id="navLinks">
+        <li><a href="store.html">View Store</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+    <div class="container">
+      <h1>Store Admin</h1>
+      <p>Manage products, sizes, colors, and pricing</p>
+    </div>
+  </div>
+
+  <section class="section section-light">
+    <div class="container">
+
+      <!-- LOGIN -->
+      <div id="loginView" class="admin-login">
+        <h3 style="color:var(--blue-dark); margin-bottom:16px;">Sign In</h3>
+        <form id="loginForm">
+          <input type="password" id="password" placeholder="Admin password" autocomplete="current-password" required />
+          <div id="loginMsg"></div>
+          <button type="submit" class="btn-add" id="loginBtn">Sign In</button>
+        </form>
+      </div>
+
+      <!-- ADMIN -->
+      <div id="adminView" style="display:none;">
+        <div class="admin-tabs">
+          <button class="admin-tab active" data-tab="products">Products</button>
+          <button class="admin-tab" data-tab="orders">Orders</button>
+          <button class="admin-tab" data-tab="logout" style="margin-left:auto;">Sign Out</button>
+        </div>
+
+        <div id="adminMsg"></div>
+
+        <!-- PRODUCTS -->
+        <div id="productsPanel">
+          <div class="admin-bar">
+            <p style="font-size:0.88rem; color:var(--text-light); margin:0;">
+              Separate sizes and colors with commas. Uncheck <strong>Active</strong> to hide an item
+              from the store without deleting it.
+            </p>
+            <div style="display:flex; gap:8px;">
+              <button class="btn-sm secondary" id="addRowBtn">+ Add Product</button>
+              <button class="btn-sm" id="saveBtn">Save Changes</button>
+            </div>
+          </div>
+
+          <div class="admin-table-wrap">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Name</th><th>Price</th><th>Category</th><th>Sizes</th>
+                  <th>Colors</th><th>Description</th><th>Image URL</th>
+                  <th>Active</th><th></th>
+                </tr>
+              </thead>
+              <tbody id="productRows"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ORDERS -->
+        <div id="ordersPanel" style="display:none;">
+          <div class="admin-bar">
+            <p style="font-size:0.88rem; color:var(--text-light); margin:0;">
+              Every submitted order line. The same data lives in the Orders tab of the Google Sheet.
+            </p>
+            <div style="display:flex; gap:8px;">
+              <button class="btn-sm secondary" id="refreshOrdersBtn">Refresh</button>
+              <button class="btn-sm" id="exportBtn">Download CSV</button>
+            </div>
+          </div>
+
+          <div class="admin-table-wrap">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Order #</th><th>Date</th><th>Parent</th><th>Email</th><th>Phone</th>
+                  <th>Player</th><th>Item</th><th>Size</th><th>Color</th>
+                  <th>Qty</th><th>Total</th><th>Notes</th>
+                </tr>
+              </thead>
+              <tbody id="orderRows"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <script src="store-config.js"></script>
+  <script src="store-admin.js"></script>
+</body>
+</html>
