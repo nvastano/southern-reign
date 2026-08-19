@@ -11,7 +11,6 @@
   const loginBtn = $('loginBtn');
   const adminMsg = $('adminMsg');
   const productList = $('productList');
-  const orderRows = $('orderRows');
   const productsPanel = $('productsPanel');
   const ordersPanel = $('ordersPanel');
 
@@ -333,52 +332,145 @@
 
   /* ---------------- orders ---------------- */
 
+  const orderList = $('orderList');
+  let expanded = new Set();
+
+  /* group the flat line rows into one card per order */
+  function groupOrders(list) {
+    const map = new Map();
+    for (const o of list) {
+      if (!map.has(o.orderId)) {
+        map.set(o.orderId, {
+          orderId: o.orderId, timestamp: o.timestamp, parentName: o.parentName,
+          email: o.email, phone: o.phone, playerName: o.playerName,
+          notes: o.notes, lines: [], total: 0, items: 0, statuses: new Set(),
+        });
+      }
+      const g = map.get(o.orderId);
+      g.lines.push(o);
+      g.total += parseFloat(o.lineTotal) || 0;
+      g.items += parseInt(o.qty, 10) || 0;
+      g.statuses.add(o.status || 'NEW');
+    }
+    return Array.from(map.values()).reverse(); // newest first
+  }
+
+  function matchesFilters(g) {
+    const q = $('orderSearch').value.trim().toLowerCase();
+    const status = $('orderStatusFilter').value;
+
+    if (status && !g.statuses.has(status)) return false;
+    if (!q) return true;
+
+    const hay = [g.orderId, g.parentName, g.email, g.phone, g.playerName, g.notes]
+      .concat(g.lines.map(l => `${l.item} ${l.size} ${l.color} ${l.custom}`))
+      .join(' ').toLowerCase();
+    return hay.includes(q);
+  }
+
+  function renderOrders() {
+    const groups = groupOrders(orders).filter(matchesFilters);
+
+    const allGroups = groupOrders(orders);
+    const revenue = allGroups.reduce((s, g) => s + g.total, 0);
+    const units = allGroups.reduce((s, g) => s + g.items, 0);
+    $('ordersStats').innerHTML = `
+      <div class="stat"><span class="stat-num">${allGroups.length}</span><span class="stat-label">Orders</span></div>
+      <div class="stat"><span class="stat-num">${units}</span><span class="stat-label">Items</span></div>
+      <div class="stat"><span class="stat-num">${money(revenue)}</span><span class="stat-label">Total</span></div>`;
+
+    if (!allGroups.length) {
+      orderList.innerHTML = '<div class="empty-state"><p>No orders yet.</p></div>';
+      return;
+    }
+    if (!groups.length) {
+      orderList.innerHTML = '<div class="empty-state"><p>No orders match that search.</p></div>';
+      return;
+    }
+
+    orderList.innerHTML = groups.map(g => {
+      const open = expanded.has(g.orderId);
+      const badges = Array.from(g.statuses)
+        .filter(st => st && st !== 'NEW')
+        .map(st => `<span class="status-badge st-${esc(st.toLowerCase())}">${esc(st)}</span>`)
+        .join('');
+
+      const lines = g.lines.map(l => `
+        <div class="oline">
+          <div class="ol-main">
+            <div class="ol-item">${esc(l.item)}</div>
+            <div class="ol-meta">${esc([l.size, l.color].filter(Boolean).join(' · '))}</div>
+            ${l.custom ? `<div class="ol-custom">${esc(l.custom)}</div>` : ''}
+          </div>
+          <div class="ol-qty">&times;${esc(l.qty)}</div>
+          <div class="ol-total">$${esc(l.lineTotal)}</div>
+          <button type="button" class="btn-sm secondary ol-edit" data-edit="${l.row}">Edit</button>
+        </div>`).join('');
+
+      const contact = [
+        g.email ? `<a href="mailto:${esc(g.email)}">${esc(g.email)}</a>` : '',
+        g.phone ? `<a href="tel:${esc(g.phone)}">${esc(g.phone)}</a>` : '',
+        g.playerName ? `Player: ${esc(g.playerName)}` : '',
+      ].filter(Boolean).join(' &nbsp;·&nbsp; ');
+
+      return `
+        <div class="order-card${open ? ' open' : ''}" data-oid="${esc(g.orderId)}">
+          <div class="order-head" role="button" tabindex="0">
+            <div class="oc-left">
+              <div class="oc-name">${esc(g.parentName || '—')}${badges}</div>
+              <div class="oc-meta">
+                ${esc(g.orderId)} &nbsp;·&nbsp; ${esc((g.timestamp || '').slice(0, 10))}
+                &nbsp;·&nbsp; ${g.items} item${g.items === 1 ? '' : 's'}
+              </div>
+            </div>
+            <div class="oc-right">
+              <div class="oc-total">${money(g.total)}</div>
+              <span class="oc-caret">${open ? '&minus;' : '+'}</span>
+            </div>
+          </div>
+          <div class="order-body"${open ? '' : ' hidden'}>
+            ${lines}
+            <div class="order-contact">${contact}</div>
+            ${g.notes ? `<div class="order-notes"><strong>Notes:</strong> ${esc(g.notes)}</div>` : ''}
+          </div>
+        </div>`;
+    }).join('');
+
+    orderList.querySelectorAll('.order-head').forEach(head => {
+      const card = head.closest('.order-card');
+      const toggle = () => {
+        const id = card.dataset.oid;
+        if (expanded.has(id)) expanded.delete(id); else expanded.add(id);
+        renderOrders();
+      };
+      head.addEventListener('click', toggle);
+      head.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
+      });
+    });
+
+    orderList.querySelectorAll('.ol-edit').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        openOrderModal(parseInt(btn.dataset.edit, 10));
+      });
+    });
+  }
+
   async function loadOrders() {
-    orderRows.innerHTML = '<tr><td colspan="14">Loading…</td></tr>';
+    orderList.innerHTML = '<div class="empty-state"><p>Loading…</p></div>';
     try {
       const data = await api('/api/admin/orders');
       orders = data.orders || [];
-      if (!orders.length) {
-        orderRows.innerHTML = '<tr><td colspan="14">No orders yet.</td></tr>';
-        return;
-      }
-      orderRows.innerHTML = orders.slice().reverse().map(o => `
-        <tr class="order-row" data-row="${o.row}" role="button" tabindex="0">
-          <td data-label="Order #">${esc(o.orderId)}${o.status && o.status !== 'NEW' ? `<span class="status-badge">${esc(o.status)}</span>` : ''}</td>
-          <td data-label="Date">${esc((o.timestamp || '').slice(0, 10))}</td>
-          <td data-label="Parent">${esc(o.parentName)}</td>
-          <td data-label="Email">${esc(o.email)}</td>
-          <td data-label="Phone">${esc(o.phone)}</td>
-          <td data-label="Player">${esc(o.playerName)}</td>
-          <td data-label="Item">${esc(o.item)}</td>
-          <td data-label="Size">${esc(o.size)}</td>
-          <td data-label="Color">${esc(o.color)}</td>
-          <td data-label="Qty">${esc(o.qty)}</td>
-          <td data-label="Total">$${esc(o.lineTotal)}</td>
-          <td data-label="Custom">${esc(o.custom)}</td>
-          <td data-label="Notes">${esc(o.notes)}</td>
-          <td class="cell-edit"><button type="button" class="btn-sm secondary" data-edit="${o.row}">Edit</button></td>
-        </tr>`).join('');
-
-      orderRows.querySelectorAll('[data-edit]').forEach(btn => {
-        btn.addEventListener('click', e => {
-          e.stopPropagation();
-          openOrderModal(parseInt(btn.dataset.edit, 10));
-        });
-      });
-
-      orderRows.querySelectorAll('.order-row').forEach(tr => {
-        const open = () => openOrderModal(parseInt(tr.dataset.row, 10));
-        tr.addEventListener('click', open);
-        tr.addEventListener('keydown', e => {
-          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); }
-        });
-      });
+      renderOrders();
     } catch (err) {
-      orderRows.innerHTML = '';
+      orderList.innerHTML = '';
       notify(err.message, 'error');
     }
   }
+
+  $('orderSearch').addEventListener('input', renderOrders);
+  $('orderStatusFilter').addEventListener('change', renderOrders);
 
   /* ---------------- order editing ---------------- */
 

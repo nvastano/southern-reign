@@ -76,29 +76,24 @@
 
         <!-- ORDERS -->
         <div id="ordersPanel" style="display:none;">
-          <div class="admin-bar">
-            <p style="font-size:0.88rem; color:var(--text-light); margin:0;">
-              Tap any line to edit it. Changes save straight to the Orders tab of the Google Sheet,
-              and edits made in the Sheet show up here after a refresh.
-            </p>
-            <div style="display:flex; gap:8px;">
-              <button class="btn-sm secondary" id="refreshOrdersBtn">Refresh</button>
-              <button class="btn-sm" id="exportBtn">Download CSV</button>
-            </div>
+          <div class="orders-stats" id="ordersStats"></div>
+
+          <div class="orders-toolbar">
+            <input type="search" id="orderSearch" placeholder="Search name, email, order #, or item…" />
+            <select id="orderStatusFilter">
+              <option value="">All statuses</option>
+              <option value="NEW">New</option>
+              <option value="CONFIRMED">Confirmed</option>
+              <option value="ORDERED">Ordered</option>
+              <option value="PAID">Paid</option>
+              <option value="DELIVERED">Delivered</option>
+              <option value="CANCELLED">Cancelled</option>
+            </select>
+            <button class="btn-sm secondary" id="refreshOrdersBtn">Refresh</button>
+            <button class="btn-sm" id="exportBtn">CSV</button>
           </div>
 
-          <div class="admin-table-wrap">
-            <table class="admin-table">
-              <thead>
-                <tr>
-                  <th>Order #</th><th>Date</th><th>Parent</th><th>Email</th><th>Phone</th>
-                  <th>Player</th><th>Item</th><th>Size</th><th>Color</th>
-                  <th>Qty</th><th>Total</th><th>Custom</th><th>Notes</th><th></th>
-                </tr>
-              </thead>
-              <tbody id="orderRows"></tbody>
-            </table>
-          </div>
+          <div id="orderList" class="order-list"></div>
         </div>
       </div>
 

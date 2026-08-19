@@ -672,11 +672,155 @@
   text-align: center;
 }
 
-/* orders list */
-.order-row { cursor: pointer; }
-.order-row:hover td { background: #f0f6ff !important; }
-.cell-edit { text-align: right; white-space: nowrap; }
-.cell-edit .btn-sm { padding: 6px 14px; }
+/* ===== ORDERS ===== */
+
+.orders-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.stat {
+  background: var(--white);
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 14px 10px;
+  text-align: center;
+}
+.stat-num {
+  display: block;
+  font-family: 'Oswald', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--blue);
+  line-height: 1.1;
+}
+.stat-label {
+  font-size: 0.7rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--text-light);
+}
+
+.orders-toolbar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.orders-toolbar input[type="search"] {
+  flex: 1;
+  min-width: 180px;
+  padding: 10px 14px;
+  border: 1px solid #d6dee9;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 0.9rem;
+}
+.orders-toolbar input[type="search"]:focus {
+  outline: none;
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(28,92,191,0.12);
+}
+.orders-toolbar select {
+  padding: 10px 12px;
+  border: 1px solid #d6dee9;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  background: var(--white);
+}
+
+.order-list { display: flex; flex-direction: column; gap: 10px; }
+
+.order-card {
+  background: var(--white);
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  overflow: hidden;
+}
+.order-card.open { border-color: var(--blue); box-shadow: 0 4px 16px rgba(20,63,138,0.1); }
+
+.order-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px 16px;
+  cursor: pointer;
+}
+.order-head:hover { background: #f7faff; }
+.order-head:focus-visible { outline: 2px solid var(--blue); outline-offset: -2px; }
+
+.oc-left { min-width: 0; }
+.oc-name {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--blue-dark);
+  overflow-wrap: anywhere;
+}
+.oc-meta { font-size: 0.8rem; color: var(--text-light); margin-top: 2px; }
+
+.oc-right { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+.oc-total {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--blue);
+}
+.oc-caret {
+  font-size: 1.3rem;
+  color: #b8c4d4;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.order-body { border-top: 1px solid #eef2f7; background: #fbfcfe; padding: 6px 16px 14px; }
+
+.oline {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 0;
+  border-bottom: 1px solid #eef2f7;
+}
+.oline:last-of-type { border-bottom: none; }
+.ol-main { flex: 1; min-width: 0; }
+.ol-item { font-weight: 600; font-size: 0.9rem; overflow-wrap: anywhere; }
+.ol-meta { font-size: 0.78rem; color: var(--text-light); }
+.ol-custom { font-size: 0.78rem; color: var(--blue); font-weight: 600; }
+.ol-qty { font-size: 0.85rem; color: var(--text-light); white-space: nowrap; }
+.ol-total {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 600;
+  font-size: 0.95rem;
+  white-space: nowrap;
+}
+.ol-edit { padding: 6px 14px !important; flex-shrink: 0; }
+
+.order-contact {
+  font-size: 0.82rem;
+  color: var(--text-light);
+  padding-top: 12px;
+  border-top: 1px solid #eef2f7;
+  overflow-wrap: anywhere;
+}
+.order-contact a { color: var(--blue); text-decoration: underline; }
+.order-notes { font-size: 0.82rem; color: var(--text-light); margin-top: 8px; }
+
+/* status colours */
+.status-badge.st-paid { background: #2e9e4f; }
+.status-badge.st-cancelled { background: #c0392b; }
+.status-badge.st-delivered { background: #6b4fbb; }
+.status-badge.st-ordered { background: #d98324; }
+.status-badge.st-confirmed { background: var(--blue); }
 
 .status-badge {
   display: inline-block;
@@ -773,4 +917,18 @@
 
   .cell-edit { text-align: left; }
   .cell-edit .btn-sm { width: 100%; padding: 12px; }
+
+  /* Orders: keep the card compact rather than letting it stack. */
+  .orders-toolbar input[type="search"] { font-size: 16px; flex: 1 1 100%; }
+  .orders-toolbar select { font-size: 16px; flex: 1; }
+  .orders-toolbar .btn-sm { flex: 1; padding: 11px; }
+
+  .oline { flex-wrap: wrap; }
+  .ol-main { flex: 1 1 100%; }
+  .ol-qty, .ol-total { font-size: 0.88rem; }
+  .ol-edit { margin-left: auto; }
+
+  .stat-num { font-size: 1.25rem; }
+  .oc-total { font-size: 1.05rem; }
+  .order-head { padding: 13px 14px; }
 }
