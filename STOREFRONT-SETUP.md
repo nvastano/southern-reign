@@ -27,18 +27,24 @@ Make a new sheet with **two tabs**, named exactly `Products` and `Orders`.
 
 **`Products` tab — row 1 is headers:**
 
-| A | B | C | D | E | F | G | H | I |
-|---|---|---|---|---|---|---|---|---|
-| id | name | description | category | price | image | sizes | colors | active |
+| A | B | C | D | E | F | G | H | I | J | K |
+|---|---|---|---|---|---|---|---|---|---|---|
+| id | name | description | category | price | image | sizes | colors | active | custom_label | custom_required |
 
 Leave `id` blank for new rows — the admin page fills it in. `sizes` and `colors` are
 comma-separated (`YS, YM, YL, S, M, L`). `active` is `TRUE` or `FALSE`.
 
+`custom_label` is what turns customization on for a product. Set it to something like
+`Player Number` and the store shows a text box on that item; leave it blank and the
+product has no customization at all. `custom_required` (`TRUE`/`FALSE`) decides whether
+a parent can add the item without filling it in. Both are managed from the admin page —
+you only need the headers.
+
 **`Orders` tab — row 1 is headers:**
 
-| A | B | C | D | E | F | G | H | I | J | K | L | M | N |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| order_id | timestamp | parent_name | email | phone | player_name | item | size | color | qty | unit_price | line_total | notes | status |
+| A | B | C | D | E | F | G | H | I | J | K | L | M | N | O |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| order_id | timestamp | parent_name | email | phone | player_name | item | size | color | qty | unit_price | line_total | notes | status | customization |
 
 Grab the Sheet ID from its URL:
 `https://docs.google.com/spreadsheets/d/`**`THIS_PART`**`/edit`
@@ -198,3 +204,20 @@ own icon and name:
 The store manifest sets `display: standalone`, so once saved it opens without browser
 chrome — it behaves like an app. Icons are generated from `assets/logo.jpg`; to
 regenerate them, the source is in the repo history under the icon build step.
+
+## Customizable products
+
+Some items need a per-order detail — a number on a hat, a name on a blanket. Open the
+product in the admin and fill in **Customization**:
+
+- **Leave it blank** — no customization. This is most products.
+- **`Player Number`** — the store shows a "Player Number" box on that product only.
+- **Required checkbox** — parents can't add the item without filling it in.
+
+The value is captured per line, so two hats with different numbers stay as two separate
+lines rather than collapsing into a quantity of 2. It shows in the cart, on the
+confirmation email, in the admin Orders tab, in the CSV export, and in column O of the
+Sheet as `Player Number: 44`.
+
+Customization is only accepted on products that offer it — a value posted for a
+non-customizable product is ignored rather than stored.

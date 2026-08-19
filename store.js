@@ -37,6 +37,13 @@
         ? `<img class="product-img" src="${esc(p.image)}" alt="${esc(p.name)}" loading="lazy" />`
         : `<div class="product-img-placeholder">&#9918;</div>`;
 
+      const customField = p.customLabel ? `
+        <div class="product-custom">
+          <label>${esc(p.customLabel)}${p.customRequired ? ' <em>required</em>' : ' <em>optional</em>'}</label>
+          <input type="text" data-role="custom" maxlength="60"
+                 placeholder="${esc(p.customLabel)}" />
+        </div>` : '';
+
       return `
         <div class="product-card" data-id="${esc(p.id)}">
           ${img}
@@ -44,11 +51,13 @@
             <div class="product-name">${esc(p.name)}</div>
             <div class="product-price">${money(p.price)}</div>
             ${p.description ? `<div class="product-desc">${esc(p.description)}</div>` : ''}
+            ${customField}
             <div class="product-opts">
               ${sizeSelect}
               ${colorSelect}
               <input type="number" data-role="qty" value="1" min="1" max="99" aria-label="Quantity" />
             </div>
+            <div class="product-err" data-role="err"></div>
             <button class="btn-add" data-role="add">Add to Order</button>
           </div>
         </div>`;
@@ -65,8 +74,20 @@
           return el ? el.value : '';
         };
         const qty = Math.max(1, Math.min(99, parseInt(pick('qty'), 10) || 1));
+        const custom = pick('custom').trim();
+        const errEl = card.querySelector('[data-role="err"]');
 
-        addToCart(product, pick('size'), pick('color'), qty);
+        if (product.customLabel && product.customRequired && !custom) {
+          errEl.textContent = `${product.customLabel} is required.`;
+          const input = card.querySelector('[data-role="custom"]');
+          if (input) input.focus();
+          return;
+        }
+        errEl.textContent = '';
+
+        addToCart(product, pick('size'), pick('color'), qty, custom);
+        const customInput = card.querySelector('[data-role="custom"]');
+        if (customInput) customInput.value = '';
 
         btn.textContent = 'Added ✓';
         btn.classList.add('added');
@@ -83,16 +104,19 @@
 
   /* ---------- cart ---------- */
 
-  function addToCart(product, size, color, qty) {
-    // Same product + same size + same color collapses into one line.
+  function addToCart(product, size, color, qty, custom) {
+    // Same product, size, colour AND customization collapses into one line.
+    // A different number on a hat has to stay its own line.
     const existing = cart.find(i =>
-      i.productId === product.id && i.size === size && i.color === color);
+      i.productId === product.id && i.size === size &&
+      i.color === color && i.custom === custom);
     if (existing) {
       existing.qty = Math.min(99, existing.qty + qty);
     } else {
       cart.push({
         productId: product.id, name: product.name,
         price: product.price, size, color, qty,
+        custom, customLabel: product.customLabel || '',
       });
     }
     renderCart();
@@ -108,11 +132,14 @@
 
     cartItemsEl.innerHTML = cart.map((item, i) => {
       const meta = [item.size, item.color].filter(Boolean).join(' · ');
+      const custom = item.custom
+        ? `${item.customLabel ? item.customLabel + ': ' : ''}${item.custom}` : '';
       return `
         <div class="cart-item">
           <div>
             <div class="cart-item-name">${esc(item.name)}</div>
             ${meta ? `<div class="cart-item-meta">${esc(meta)}</div>` : ''}
+            ${custom ? `<div class="cart-item-custom">${esc(custom)}</div>` : ''}
             <div class="cart-item-meta">Qty ${item.qty} &times; ${money(item.price)}</div>
           </div>
           <div class="cart-item-right">
@@ -154,7 +181,8 @@
           playerName: document.getElementById('playerName').value.trim(),
           notes: document.getElementById('notes').value.trim(),
           items: cart.map(i => ({
-            productId: i.productId, size: i.size, color: i.color, qty: i.qty,
+            productId: i.productId, size: i.size, color: i.color,
+            qty: i.qty, custom: i.custom,
           })),
         }),
       });

@@ -125,6 +125,7 @@
       if (p.sizes && p.sizes.length) bits.push(`${p.sizes.length} size${p.sizes.length === 1 ? '' : 's'}`);
       if (p.colors && p.colors.length) bits.push(p.colors.join(', '));
       if (p.category) bits.unshift(p.category);
+      if (p.customLabel) bits.push(`✎ ${p.customLabel}`);
 
       return `
         <div class="product-row${p.active === false ? ' inactive' : ''}" data-index="${i}" role="button" tabindex="0">
@@ -190,7 +191,10 @@
     $('fColors').value = (p.colors || []).join(', ');
     $('fDescription').value = p.description || '';
     $('fImage').value = p.image || '';
+    $('fCustomLabel').value = p.customLabel || '';
+    $('fCustomRequired').checked = !!p.customRequired;
     $('fActive').checked = p.active !== false;
+    syncCustomRequired();
     syncThumb();
 
     modal.hidden = false;
@@ -214,6 +218,13 @@
   });
   $('addProductBtn').addEventListener('click', () => openModal());
   $('fImage').addEventListener('change', syncThumb);
+
+  function syncCustomRequired() {
+    const on = !!$('fCustomLabel').value.trim();
+    $('fCustomRequiredWrap').style.display = on ? 'flex' : 'none';
+    if (!on) $('fCustomRequired').checked = false;
+  }
+  $('fCustomLabel').addEventListener('input', syncCustomRequired);
 
   /* save the whole catalog back — the API replaces the sheet contents */
   async function persist(list, successMsg) {
@@ -268,6 +279,8 @@
       colors: splitList($('fColors').value),
       description: $('fDescription').value.trim(),
       image: $('fImage').value.trim(),
+      customLabel: $('fCustomLabel').value.trim(),
+      customRequired: $('fCustomLabel').value.trim() ? $('fCustomRequired').checked : false,
       active: $('fActive').checked,
     };
 
@@ -321,12 +334,12 @@
   /* ---------------- orders ---------------- */
 
   async function loadOrders() {
-    orderRows.innerHTML = '<tr><td colspan="13">Loading…</td></tr>';
+    orderRows.innerHTML = '<tr><td colspan="14">Loading…</td></tr>';
     try {
       const data = await api('/api/admin/orders');
       orders = data.orders || [];
       if (!orders.length) {
-        orderRows.innerHTML = '<tr><td colspan="13">No orders yet.</td></tr>';
+        orderRows.innerHTML = '<tr><td colspan="14">No orders yet.</td></tr>';
         return;
       }
       orderRows.innerHTML = orders.slice().reverse().map(o => `
@@ -342,6 +355,7 @@
           <td data-label="Color">${esc(o.color)}</td>
           <td data-label="Qty">${esc(o.qty)}</td>
           <td data-label="Total">$${esc(o.lineTotal)}</td>
+          <td data-label="Custom">${esc(o.custom)}</td>
           <td data-label="Notes">${esc(o.notes)}</td>
           <td class="cell-edit"><button type="button" class="btn-sm secondary" data-edit="${o.row}">Edit</button></td>
         </tr>`).join('');
@@ -401,6 +415,7 @@
     $('oEmail').value = order.email || '';
     $('oPhone').value = order.phone || '';
     $('oPlayer').value = order.playerName || '';
+    $('oCustom').value = order.custom || '';
     $('oNotes').value = order.notes || '';
     $('oMsg').innerHTML = '';
     refreshLineTotal();
@@ -442,6 +457,7 @@
           email: $('oEmail').value.trim(),
           phone: $('oPhone').value.trim(),
           playerName: $('oPlayer').value.trim(),
+          custom: $('oCustom').value.trim(),
           notes: $('oNotes').value.trim(),
         }),
       });
@@ -461,7 +477,7 @@
   $('exportBtn').addEventListener('click', () => {
     if (!orders.length) return notify('No orders to export.', 'error');
     const cols = ['orderId', 'timestamp', 'parentName', 'email', 'phone', 'playerName',
-      'item', 'size', 'color', 'qty', 'unitPrice', 'lineTotal', 'notes', 'status'];
+      'item', 'size', 'color', 'qty', 'unitPrice', 'lineTotal', 'notes', 'status', 'custom'];
     const cell = v => `"${String(v == null ? '' : v).replace(/"/g, '""')}"`;
     const csv = [cols.join(',')]
       .concat(orders.map(o => cols.map(c => cell(o[c])).join(',')))

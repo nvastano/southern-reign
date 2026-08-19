@@ -15,9 +15,11 @@
  *   ALLOWED_ORIGINS     - comma-separated list of site origins
  */
 
-const PRODUCTS_RANGE = 'Products!A2:I';
-const ORDERS_RANGE = 'Orders!A:N';
+const PRODUCTS_RANGE = 'Products!A2:K';
+const ORDERS_RANGE = 'Orders!A:O';
 const SESSION_TTL_SECONDS = 60 * 60 * 8; // 8 hours
+
+const MAX_CUSTOM_LENGTH = 60;
 
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 const IMAGE_TYPES = {
@@ -214,6 +216,9 @@ function rowToProduct(row) {
     sizes: splitList(row[6]),
     colors: splitList(row[7]),
     active: String(row[8] || '').toUpperCase() !== 'FALSE',
+    // Blank label means this product takes no customization at all.
+    customLabel: row[9] || '',
+    customRequired: String(row[10] || '').toUpperCase() === 'TRUE',
   };
 }
 
@@ -223,6 +228,8 @@ function productToRow(p) {
     p.price != null ? String(p.price) : '', p.image || '',
     (p.sizes || []).join(', '), (p.colors || []).join(', '),
     p.active === false ? 'FALSE' : 'TRUE',
+    p.customLabel || '',
+    p.customRequired ? 'TRUE' : 'FALSE',
   ];
 }
 
@@ -281,6 +288,15 @@ async function createOrder(env, body) {
     const lineTotal = product.price * qty;
     total += lineTotal;
 
+    // Only accept a customization on products that actually offer one.
+    let custom = '';
+    if (product.customLabel) {
+      custom = String(item.custom == null ? '' : item.custom).trim().slice(0, MAX_CUSTOM_LENGTH);
+      if (product.customRequired && !custom) {
+        reject(`${product.name}: ${product.customLabel} is required.`);
+      }
+    }
+
     rows.push([
       orderId, timestamp,
       sanitizeCell(body.parentName), sanitizeCell(body.email), sanitizeCell(body.phone),
@@ -288,11 +304,13 @@ async function createOrder(env, body) {
       sanitizeCell(item.size), sanitizeCell(item.color),
       qty, product.price.toFixed(2), lineTotal.toFixed(2),
       sanitizeCell(body.notes), 'NEW',
+      sanitizeCell(custom ? `${product.customLabel}: ${custom}` : ''),
     ]);
 
     lines.push({
       name: product.name,
       variant: [item.size, item.color].filter(Boolean).join(' · '),
+      custom: custom ? `${product.customLabel}: ${custom}` : '',
       qty,
       lineTotal: lineTotal.toFixed(2),
     });
@@ -321,6 +339,7 @@ function orderEmailHtml(order, body) {
       <td style="padding:10px 8px;border-bottom:1px solid #eef2f7;">
         <strong>${escapeHtml(l.name)}</strong>
         ${l.variant ? `<br><span style="color:#666;font-size:13px;">${escapeHtml(l.variant)}</span>` : ''}
+        ${l.custom ? `<br><span style="color:#1C5CBF;font-size:13px;font-weight:bold;">${escapeHtml(l.custom)}</span>` : ''}
       </td>
       <td style="padding:10px 8px;border-bottom:1px solid #eef2f7;text-align:center;">${l.qty}</td>
       <td style="padding:10px 8px;border-bottom:1px solid #eef2f7;text-align:right;">$${l.lineTotal}</td>
@@ -409,6 +428,7 @@ async function getOrders(env) {
     orderId: r[0], timestamp: r[1], parentName: r[2], email: r[3], phone: r[4],
     playerName: r[5], item: r[6], size: r[7], color: r[8],
     qty: r[9], unitPrice: r[10], lineTotal: r[11], notes: r[12], status: r[13],
+    custom: r[14] || '',
   })).filter(o => o.orderId);
 }
 
@@ -418,7 +438,7 @@ async function updateOrder(env, body) {
   const row = parseInt(body.row, 10);
   if (!row || row < 2) reject('Invalid order row.');
 
-  const range = `Orders!A${row}:N${row}`;
+  const range = `Orders!A${row}:O${row}`;
   const current = await sheetsFetch(env, `/values/${encodeURIComponent(range)}`);
   const existing = (current.values && current.values[0]) || [];
 
@@ -441,6 +461,7 @@ async function updateOrder(env, body) {
     sanitizeCell(body.size), sanitizeCell(body.color),
     qty, unitPrice.toFixed(2), (unitPrice * qty).toFixed(2),
     sanitizeCell(body.notes), sanitizeCell(body.status || 'NEW'),
+    sanitizeCell(body.custom),
   ]];
 
   await sheetsFetch(

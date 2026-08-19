@@ -93,7 +93,7 @@
                 <tr>
                   <th>Order #</th><th>Date</th><th>Parent</th><th>Email</th><th>Phone</th>
                   <th>Player</th><th>Item</th><th>Size</th><th>Color</th>
-                  <th>Qty</th><th>Total</th><th>Notes</th><th></th>
+                  <th>Qty</th><th>Total</th><th>Custom</th><th>Notes</th><th></th>
                 </tr>
               </thead>
               <tbody id="orderRows"></tbody>
@@ -144,6 +144,17 @@
           <span>Description</span>
           <textarea id="fDescription" rows="3" placeholder="Optional details parents should know"></textarea>
         </label>
+
+        <div class="field-group">
+          <label class="field">
+            <span>Customization <em>leave blank if this item isn't customized</em></span>
+            <input type="text" id="fCustomLabel" placeholder="Player Number" />
+          </label>
+          <label class="field-check" id="fCustomRequiredWrap">
+            <input type="checkbox" id="fCustomRequired" />
+            <span>Required — parents must fill this in to add the item</span>
+          </label>
+        </div>
 
         <div class="field">
           <span>Product Photo</span>
@@ -201,6 +212,11 @@
             <input type="text" id="oColor" placeholder="Navy" />
           </label>
         </div>
+
+        <label class="field">
+          <span>Customization</span>
+          <input type="text" id="oCustom" placeholder="e.g. Player Number: 44" />
+        </label>
 
         <div class="field-row">
           <label class="field">
