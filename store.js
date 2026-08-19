@@ -189,17 +189,44 @@
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Order failed');
 
+      const pay = window.STORE_PAYMENT || {};
+
       cart = [];
       renderCart();
       checkoutForm.reset();
       statusEl.style.display = 'block';
       statusEl.innerHTML = `
-        <div class="store-msg success" style="max-width:520px;margin:0 auto;text-align:left;">
-          <strong>Order received!</strong><br />
-          Your confirmation number is <strong>${esc(data.orderId)}</strong> for a total of
-          ${esc(money(data.total))}.
-          ${data.emailed ? 'A confirmation email is on its way. ' : ''}We'll be in touch about
-          payment once the team order is finalized.
+        <div class="order-confirm">
+          <div class="confirm-check">&#10003;</div>
+          <h3>Order Received</h3>
+          <p class="confirm-sub">
+            Confirmation number <strong>${esc(data.orderId)}</strong>
+            ${data.emailed ? '&bull; a confirmation email is on its way' : ''}
+          </p>
+
+          <div class="confirm-total">
+            <span>Amount Due</span>
+            <strong>${esc(money(data.total))}</strong>
+          </div>
+
+          <div class="pay-box">
+            <div class="pay-head">Please send payment now</div>
+            <p class="pay-line">
+              ${esc(money(data.total))} to <strong>${esc(pay.name || '')}</strong>
+              on ${esc(pay.app || '')}
+            </p>
+            <div class="pay-handle">${esc(pay.handle || '')}</div>
+            ${pay.url ? `<a class="btn pay-btn" href="${esc(pay.url)}" target="_blank" rel="noopener">Open ${esc(pay.app || 'payment app')}</a>` : ''}
+            <p class="pay-note">
+              Please put your confirmation number <strong>${esc(data.orderId)}</strong>
+              in the payment note so we can match it to your order.
+            </p>
+          </div>
+
+          <p class="confirm-foot">
+            Questions? Email
+            <a href="mailto:SouthernReignBaseball@gmail.com">SouthernReignBaseball@gmail.com</a>
+          </p>
         </div>`;
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err) {

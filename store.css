@@ -232,6 +232,100 @@
 
 .store-status { text-align: center; padding: 60px 20px; color: var(--text-light); }
 
+/* ===== ORDER CONFIRMATION ===== */
+
+.order-confirm {
+  max-width: 480px;
+  margin: 0 auto;
+  background: var(--white);
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 36px 28px;
+  text-align: center;
+  box-shadow: 0 6px 24px rgba(20,63,138,0.08);
+}
+
+.confirm-check {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 18px;
+  border-radius: 50%;
+  background: #e8f6ec;
+  color: #2e9e4f;
+  font-size: 1.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.order-confirm h3 { color: var(--blue-dark); font-size: 1.4rem; margin-bottom: 8px; }
+.confirm-sub { font-size: 0.9rem; color: var(--text-light); margin-bottom: 22px; }
+
+.confirm-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--light-bg);
+  border-radius: 6px;
+  padding: 14px 18px;
+  margin-bottom: 22px;
+  font-family: 'Oswald', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.85rem;
+  color: var(--text-light);
+}
+.confirm-total strong { font-size: 1.5rem; color: var(--blue); letter-spacing: 0; }
+
+.pay-box {
+  background: var(--blue-dark);
+  border-radius: 8px;
+  padding: 24px 20px;
+  color: var(--white);
+}
+.pay-head {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--yellow);
+  margin-bottom: 12px;
+}
+.pay-line { font-size: 1rem; margin-bottom: 6px; }
+.pay-handle {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--yellow);
+  letter-spacing: 0.02em;
+  overflow-wrap: anywhere;
+  margin-bottom: 16px;
+}
+.pay-btn {
+  display: inline-block;
+  background: var(--yellow);
+  color: var(--blue-dark);
+  padding: 12px 30px;
+  border-radius: 4px;
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.9rem;
+}
+.pay-btn:hover { background: #d6ef4a; }
+.pay-note {
+  font-size: 0.83rem;
+  color: rgba(255,255,255,0.8);
+  margin-top: 16px;
+  line-height: 1.5;
+}
+.pay-note strong { color: var(--white); }
+
+.confirm-foot { font-size: 0.83rem; color: var(--text-light); margin-top: 20px; }
+.confirm-foot a { color: var(--blue); text-decoration: underline; }
+
 @media (max-width: 900px) {
   .store-layout { grid-template-columns: 1fr; }
   .cart { position: static; }

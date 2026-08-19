@@ -21,6 +21,14 @@ const SESSION_TTL_SECONDS = 60 * 60 * 8; // 8 hours
 
 const MAX_CUSTOM_LENGTH = 60;
 
+// Payment details shown on the confirmation email. Overridable per-deployment
+// with PAYMENT_APP / PAYMENT_NAME / PAYMENT_HANDLE vars on the Worker.
+const PAYMENT_DEFAULTS = {
+  app: 'Venmo',
+  name: 'Alyssa Kushnir',
+  handle: '@alyssakushnir',
+};
+
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 const IMAGE_TYPES = {
   'image/jpeg': 'jpg',
@@ -333,7 +341,7 @@ const escapeHtml = s => String(s == null ? '' : s)
   .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
   .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 
-function orderEmailHtml(order, body) {
+function orderEmailHtml(order, body, pay) {
   const rows = order.lines.map(l => `
     <tr>
       <td style="padding:10px 8px;border-bottom:1px solid #eef2f7;">
@@ -374,9 +382,16 @@ function orderEmailHtml(order, body) {
             </tr>
           </table>
 
-          <div style="margin-top:24px;padding:14px 18px;background:#fff8e1;border-left:4px solid #C8E428;font-size:14px;color:#6b5d1f;">
-            <strong>What happens next:</strong> We'll collect payment once the full team order is
-            finalized. No payment is due right now — we'll be in touch with details.
+          <div style="margin-top:24px;padding:18px;background:#143f8a;border-radius:6px;text-align:center;color:#ffffff;">
+            <div style="font-size:12px;letter-spacing:1px;text-transform:uppercase;color:#C8E428;font-weight:bold;">Please send payment now</div>
+            <div style="font-size:16px;margin-top:10px;">
+              <strong>$${escapeHtml(order.total)}</strong> to <strong>${escapeHtml(pay.name)}</strong> on ${escapeHtml(pay.app)}
+            </div>
+            <div style="font-size:22px;font-weight:bold;color:#C8E428;margin-top:8px;">${escapeHtml(pay.handle)}</div>
+            <div style="font-size:13px;margin-top:12px;color:#dbe4f5;">
+              Put <strong style="color:#ffffff;">${escapeHtml(order.orderId)}</strong> in the payment note
+              so we can match it to your order.
+            </div>
           </div>
 
           ${body.playerName ? `<p style="margin:20px 0 0;font-size:14px;color:#555;">Player: ${escapeHtml(body.playerName)}</p>` : ''}
@@ -396,6 +411,12 @@ function orderEmailHtml(order, body) {
 async function sendOrderEmail(env, order, body) {
   if (!env.RESEND_API_KEY) return { sent: false, reason: 'not configured' };
 
+  const pay = {
+    app: env.PAYMENT_APP || PAYMENT_DEFAULTS.app,
+    name: env.PAYMENT_NAME || PAYMENT_DEFAULTS.name,
+    handle: env.PAYMENT_HANDLE || PAYMENT_DEFAULTS.handle,
+  };
+
   const from = env.EMAIL_FROM || 'Southern Reign Baseball <onboarding@resend.dev>';
   const to = [body.email];
   // Copy the team so somebody sees the order without opening the sheet.
@@ -411,7 +432,7 @@ async function sendOrderEmail(env, order, body) {
       from,
       to,
       subject: `Order ${order.orderId} received — Southern Reign Team Store`,
-      html: orderEmailHtml(order, body),
+      html: orderEmailHtml(order, body, pay),
     }),
   });
 
