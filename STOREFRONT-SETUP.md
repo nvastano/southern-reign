@@ -147,6 +147,9 @@ don't get an email.
 | `RESEND_API_KEY` | Secret | your Resend API key |
 | `EMAIL_FROM` | Text | `Southern Reign Baseball <orders@southernreignbaseball.com>` |
 | `TEAM_EMAIL` | Text | `SouthernReignBaseball@gmail.com` — gets a copy of every order |
+| `PAYMENT_NAME` | Text | optional — defaults to `Alyssa Kushnir` |
+| `PAYMENT_HANDLE` | Text | optional — defaults to `@alyssakushnir` |
+| `PAYMENT_HANDLE_ID` | Text | optional — Venmo username without the `@` |
 
 4. Redeploy.
 
@@ -169,7 +172,7 @@ accounts) and worth doing only if one shared password becomes a problem.
 ## Where the orders go
 
 Every submitted order appends **one row per line item** to the `Orders` tab, grouped by
-an `order_id` like `SR-M2K4X9A`. Filter or sort that tab and hand it straight to your
+a short sequential `order_id` like `SR-104`. Filter or sort that tab and hand it straight to your
 producer, or use **Download CSV** on the admin Orders tab.
 
 ## Security notes
@@ -221,3 +224,20 @@ Sheet as `Player Number: 44`.
 
 Customization is only accepted on products that offer it — a value posted for a
 non-customizable product is ignored rather than stored.
+
+## Order numbers
+
+Orders are numbered sequentially — `SR-101`, `SR-102`, and so on — starting at 101 and
+continuing from the highest number already in the Sheet. Short enough to read over the
+phone or write on a box.
+
+All lines of one order share the same number, and the number is what parents put in
+their Venmo note. Older base-36 ids (`SR-MT0JNKDH`) are ignored when working out the
+next number, so existing orders keep their ids and numbering just starts fresh at 101.
+
+To change the starting number, edit `ORDER_NUMBER_START` at the top of the Worker.
+
+One caveat worth knowing: the next number is worked out by reading the Sheet at order
+time, so two parents submitting in the exact same second could theoretically land on the
+same number. With a team-sized store this is vanishingly unlikely, and the rows are still
+distinct — but it's the tradeoff for readable numbers over guaranteed-unique ids.

@@ -190,6 +190,11 @@
       if (!res.ok) throw new Error(data.error || 'Order failed');
 
       const pay = window.STORE_PAYMENT || {};
+      // Prefill recipient, amount and note so the parent types nothing.
+      const payUrl = pay.handleId
+        ? `https://venmo.com/?txn=pay&recipients=${encodeURIComponent(pay.handleId)}` +
+          `&amount=${encodeURIComponent(data.total)}&note=${encodeURIComponent(data.orderId)}`
+        : (pay.url || '');
 
       cart = [];
       renderCart();
@@ -216,10 +221,11 @@
               on ${esc(pay.app || '')}
             </p>
             <div class="pay-handle">${esc(pay.handle || '')}</div>
-            ${pay.url ? `<a class="btn pay-btn" href="${esc(pay.url)}" target="_blank" rel="noopener">Open ${esc(pay.app || 'payment app')}</a>` : ''}
+            ${payUrl ? `<a class="btn pay-btn" href="${esc(payUrl)}" target="_blank" rel="noopener">Pay on ${esc(pay.app || 'app')}</a>` : ''}
             <p class="pay-note">
-              Please put your confirmation number <strong>${esc(data.orderId)}</strong>
-              in the payment note so we can match it to your order.
+              The button fills in the amount and the note for you. Paying another way?
+              Put <strong>${esc(data.orderId)}</strong> in the note so we can match it
+              to your order.
             </p>
           </div>
 

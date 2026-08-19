@@ -21,12 +21,16 @@ const SESSION_TTL_SECONDS = 60 * 60 * 8; // 8 hours
 
 const MAX_CUSTOM_LENGTH = 60;
 
+// First order number issued when the sheet has none yet.
+const ORDER_NUMBER_START = 101;
+
 // Payment details shown on the confirmation email. Overridable per-deployment
 // with PAYMENT_APP / PAYMENT_NAME / PAYMENT_HANDLE vars on the Worker.
 const PAYMENT_DEFAULTS = {
   app: 'Venmo',
   name: 'Alyssa Kushnir',
   handle: '@alyssakushnir',
+  handleId: 'alyssakushnir', // used to build the prefilled payment link
 };
 
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
@@ -269,6 +273,23 @@ function sanitizeCell(v) {
   return /^[=+\-@]/.test(s) ? `'${s}` : s;
 }
 
+/**
+ * Short, sequential order numbers (SR-101, SR-102, …) — easy to read aloud,
+ * write down, and type into a Venmo note. Numbering continues from the highest
+ * one already in the sheet; older base-36 ids simply don't match and are ignored.
+ */
+async function nextOrderId(env) {
+  const data = await sheetsFetch(env, `/values/${encodeURIComponent('Orders!A2:A')}`);
+  const rows = data.values || [];
+
+  let highest = ORDER_NUMBER_START - 1;
+  for (const r of rows) {
+    const match = /^SR-(\d+)$/.exec(String((r && r[0]) || '').trim());
+    if (match) highest = Math.max(highest, parseInt(match[1], 10));
+  }
+  return `SR-${highest + 1}`;
+}
+
 async function createOrder(env, body) {
   const products = await getProducts(env);
   const byId = new Map(products.map(p => [p.id, p]));
@@ -280,7 +301,7 @@ async function createOrder(env, body) {
   if (!items.length) reject('Your order is empty — add at least one item.');
   if (!body.parentName || !body.email) reject('Name and email are required.');
 
-  const orderId = `SR-${Date.now().toString(36).toUpperCase()}`;
+  const orderId = await nextOrderId(env);
   const timestamp = new Date().toISOString();
   const rows = [];
   const lines = [];
@@ -388,8 +409,15 @@ function orderEmailHtml(order, body, pay) {
               <strong>$${escapeHtml(order.total)}</strong> to <strong>${escapeHtml(pay.name)}</strong> on ${escapeHtml(pay.app)}
             </div>
             <div style="font-size:22px;font-weight:bold;color:#C8E428;margin-top:8px;">${escapeHtml(pay.handle)}</div>
-            <div style="font-size:13px;margin-top:12px;color:#dbe4f5;">
-              Put <strong style="color:#ffffff;">${escapeHtml(order.orderId)}</strong> in the payment note
+            <div style="margin-top:16px;">
+              <a href="https://venmo.com/?txn=pay&recipients=${encodeURIComponent(pay.handleId)}&amount=${encodeURIComponent(order.total)}&note=${encodeURIComponent(order.orderId)}"
+                 style="display:inline-block;background:#C8E428;color:#143f8a;padding:12px 28px;border-radius:4px;font-weight:bold;text-decoration:none;letter-spacing:1px;text-transform:uppercase;font-size:14px;">
+                Pay on ${escapeHtml(pay.app)}
+              </a>
+            </div>
+            <div style="font-size:13px;margin-top:14px;color:#dbe4f5;">
+              The button fills in the amount and the note for you. Paying another way? Put
+              <strong style="color:#ffffff;">${escapeHtml(order.orderId)}</strong> in the note
               so we can match it to your order.
             </div>
           </div>
@@ -415,6 +443,7 @@ async function sendOrderEmail(env, order, body) {
     app: env.PAYMENT_APP || PAYMENT_DEFAULTS.app,
     name: env.PAYMENT_NAME || PAYMENT_DEFAULTS.name,
     handle: env.PAYMENT_HANDLE || PAYMENT_DEFAULTS.handle,
+    handleId: env.PAYMENT_HANDLE_ID || PAYMENT_DEFAULTS.handleId,
   };
 
   const from = env.EMAIL_FROM || 'Southern Reign Baseball <onboarding@resend.dev>';

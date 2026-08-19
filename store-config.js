@@ -9,5 +9,7 @@ window.STORE_PAYMENT = {
   app: 'Venmo',
   name: 'Alyssa Kushnir',
   handle: '@alyssakushnir',
-  url: 'https://venmo.com/u/alyssakushnir',
+  // Venmo username without the @ — used to build a link that prefills the
+  // amount and drops the order number into the payment note.
+  handleId: 'alyssakushnir',
 };
