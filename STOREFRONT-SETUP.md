@@ -2,8 +2,10 @@
 
 The storefront is **not linked from the site nav**. It lives at:
 
-- Store: `https://www.southernreignbaseball.com/store.html`
-- Admin: `https://www.southernreignbaseball.com/store-admin.html`
+- Store: `https://www.southernreignbaseball.com/store/`
+- Admin: `https://www.southernreignbaseball.com/store/admin.html`
+
+The old `/store.html` and `/store-admin.html` URLs redirect to these.
 
 Both pages are `noindex, nofollow` so search engines skip them. They're unlisted, not
 secret — anyone with the URL can view the store. The admin page requires a password.
@@ -11,7 +13,7 @@ secret — anyone with the URL can view the store. The admin page requires a pas
 ## How it fits together
 
 ```
-store.html / store-admin.html      Cloudflare Worker            Google Sheet
+  /store/  and  /store/admin.html    Cloudflare Worker            Google Sheet
    (GitHub Pages, static)   ──►   (holds all secrets)   ──►   Products + Orders
 ```
 
@@ -95,12 +97,11 @@ Commit and push. That's it.
 
 ## 5. Add products
 
-Go to `/store-admin.html`, sign in with `ADMIN_PASSWORD`, and add products in the
-Products tab. Click **Save Changes** and they appear on the store immediately.
+Go to `/store/admin.html`, sign in with `ADMIN_PASSWORD`, and add products in the
+Products tab. Each add, edit, and delete saves immediately.
 
-For product photos, click **Upload** in the Image column and pick a file from your
-computer. You can also paste a URL, or use a repo path like `assets/gear-hoodie.jpg`
-for images committed to the site.
+For product photos, open a product and click **Upload Photo**. You can also paste a
+URL, or use a repo path like `assets/gear-hoodie.jpg` for images committed to the site.
 
 ## Product image uploads
 
@@ -179,7 +180,21 @@ producer, or use **Download CSV** on the admin Orders tab.
 When you're ready, add this to the `<ul id="navLinks">` block in each HTML page:
 
 ```html
-<li><a href="store.html">Store</a></li>
+<li><a href="store/">Store</a></li>
 ```
 
-and remove the `noindex` meta tag from `store.html`.
+and remove the `noindex` meta tag from `store/index.html`.
+
+## Home screen icons
+
+Both the main site and the store can be saved to a phone home screen, and each gets its
+own icon and name:
+
+| | Icon | Name | Opens |
+|---|---|---|---|
+| Main site | logo on white | Southern Reign | `/` |
+| Team store | logo on navy with STORE | Reign Store | `/store/` |
+
+The store manifest sets `display: standalone`, so once saved it opens without browser
+chrome — it behaves like an app. Icons are generated from `assets/logo.jpg`; to
+regenerate them, the source is in the repo history under the icon build step.

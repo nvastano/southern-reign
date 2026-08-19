@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Team Store | Southern Reign Baseball</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../style.css" />
+  <link rel="stylesheet" href="../store.css" />
+  <link rel="manifest" href="store.webmanifest" />
+  <link rel="apple-touch-icon" href="../assets/store-apple-touch-icon.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Reign Store" />
+  <meta name="theme-color" content="#1a1a2e" />
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <div class="nav-inner">
+      <a href="../index.html" class="nav-brand">Southern Reign</a>
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu"><span></span></button>
+      <ul id="navLinks">
+        <li><a href="../index.html#about">About</a></li>
+        <li><a href="../roster.html">Roster</a></li>
+        <li><a href="../gallery.html">Gallery</a></li>
+        <li><a href="../sponsors.html">Sponsors</a></li>
+        <li><a href="../index.html#contact">Contact</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+    <div class="container">
+      <h1>Team Store</h1>
+      <p>Official Southern Reign gear for players and families</p>
+    </div>
+  </div>
+
+  <!-- STORE -->
+  <section class="section section-light">
+    <div class="container">
+
+      <div class="store-note">
+        <strong>How ordering works:</strong> Place your order below and we'll collect payment separately
+        once the team order is finalized. You'll get a confirmation number when you submit.
+      </div>
+
+      <div id="storeStatus" class="store-status">Loading the team store&hellip;</div>
+
+      <div class="store-layout" id="storeLayout" style="display:none;">
+        <div>
+          <div class="product-grid" id="productGrid"></div>
+        </div>
+
+        <aside class="cart">
+          <h3>Your Order</h3>
+          <div id="cartItems"><p class="cart-empty">Nothing added yet.</p></div>
+
+          <div class="cart-total" id="cartTotal" style="display:none;">
+            <span>Total</span><span id="cartTotalAmount">$0.00</span>
+          </div>
+
+          <form id="checkoutForm" style="display:none;">
+            <div class="checkout-fields">
+              <input type="text" id="parentName" placeholder="Your name *" required />
+              <input type="email" id="email" placeholder="Email *" required />
+              <input type="tel" id="phone" placeholder="Phone" />
+              <input type="text" id="playerName" placeholder="Player name" />
+              <textarea id="notes" placeholder="Notes (optional)"></textarea>
+            </div>
+            <div id="checkoutMsg"></div>
+            <button type="submit" class="btn-add" id="submitBtn">Submit Order</button>
+          </form>
+        </aside>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="container">
+      <img src="../assets/logo.jpg" alt="Southern Reign Baseball" class="footer-logo" />
+      <p>&copy; 2026 Southern Reign Baseball &bull; Spring Hill, Tennessee</p>
+      <p>SouthernReignBaseball@gmail.com</p>
+    </div>
+  </footer>
+
+  <script src="../nav.js"></script>
+  <script src="../store-config.js"></script>
+  <script src="../store.js"></script>
+</body>
+</html>
