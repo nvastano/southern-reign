@@ -523,6 +523,8 @@
 /* orders list */
 .order-row { cursor: pointer; }
 .order-row:hover td { background: #f0f6ff !important; }
+.cell-edit { text-align: right; white-space: nowrap; }
+.cell-edit .btn-sm { padding: 6px 14px; }
 
 .status-badge {
   display: inline-block;
@@ -616,4 +618,7 @@
   .row-thumb { width: 46px; height: 46px; }
   .row-chevron { display: none; }
   .product-row { gap: 12px; padding: 12px; }
+
+  .cell-edit { text-align: left; }
+  .cell-edit .btn-sm { width: 100%; padding: 12px; }
 }

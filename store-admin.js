@@ -321,12 +321,12 @@
   /* ---------------- orders ---------------- */
 
   async function loadOrders() {
-    orderRows.innerHTML = '<tr><td colspan="12">Loading…</td></tr>';
+    orderRows.innerHTML = '<tr><td colspan="13">Loading…</td></tr>';
     try {
       const data = await api('/api/admin/orders');
       orders = data.orders || [];
       if (!orders.length) {
-        orderRows.innerHTML = '<tr><td colspan="12">No orders yet.</td></tr>';
+        orderRows.innerHTML = '<tr><td colspan="13">No orders yet.</td></tr>';
         return;
       }
       orderRows.innerHTML = orders.slice().reverse().map(o => `
@@ -343,7 +343,15 @@
           <td data-label="Qty">${esc(o.qty)}</td>
           <td data-label="Total">$${esc(o.lineTotal)}</td>
           <td data-label="Notes">${esc(o.notes)}</td>
+          <td class="cell-edit"><button type="button" class="btn-sm secondary" data-edit="${o.row}">Edit</button></td>
         </tr>`).join('');
+
+      orderRows.querySelectorAll('[data-edit]').forEach(btn => {
+        btn.addEventListener('click', e => {
+          e.stopPropagation();
+          openOrderModal(parseInt(btn.dataset.edit, 10));
+        });
+      });
 
       orderRows.querySelectorAll('.order-row').forEach(tr => {
         const open = () => openOrderModal(parseInt(tr.dataset.row, 10));
