@@ -74,7 +74,8 @@
         <div id="ordersPanel" style="display:none;">
           <div class="admin-bar">
             <p style="font-size:0.88rem; color:var(--text-light); margin:0;">
-              Every submitted order line. The same data lives in the Orders tab of the Google Sheet.
+              Tap any line to edit it. Changes save straight to the Orders tab of the Google Sheet,
+              and edits made in the Sheet show up here after a refresh.
             </p>
             <div style="display:flex; gap:8px;">
               <button class="btn-sm secondary" id="refreshOrdersBtn">Refresh</button>
@@ -165,6 +166,91 @@
         <div class="modal-foot-right">
           <button type="button" class="btn-sm secondary" id="modalCancel">Cancel</button>
           <button type="button" class="btn-sm" id="modalSave">Save Product</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ORDER MODAL -->
+  <div class="modal-overlay" id="orderModal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="orderModalTitle">
+      <div class="modal-head">
+        <h3 id="orderModalTitle">Edit Order</h3>
+        <button type="button" class="modal-close" id="oClose" aria-label="Close">&times;</button>
+      </div>
+
+      <form class="modal-body" id="orderForm">
+        <p class="modal-sub" id="oSummary"></p>
+
+        <label class="field">
+          <span>Item</span>
+          <select id="oItem"></select>
+        </label>
+
+        <div class="field-row">
+          <label class="field">
+            <span>Size</span>
+            <input type="text" id="oSize" placeholder="YM" />
+          </label>
+          <label class="field">
+            <span>Color</span>
+            <input type="text" id="oColor" placeholder="Navy" />
+          </label>
+        </div>
+
+        <div class="field-row">
+          <label class="field">
+            <span>Quantity</span>
+            <input type="number" id="oQty" min="1" max="99" />
+          </label>
+          <label class="field">
+            <span>Status</span>
+            <select id="oStatus">
+              <option value="NEW">New</option>
+              <option value="CONFIRMED">Confirmed</option>
+              <option value="ORDERED">Ordered</option>
+              <option value="PAID">Paid</option>
+              <option value="DELIVERED">Delivered</option>
+              <option value="CANCELLED">Cancelled</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="line-total-note" id="oTotalNote"></div>
+
+        <label class="field">
+          <span>Parent Name</span>
+          <input type="text" id="oParent" />
+        </label>
+
+        <div class="field-row">
+          <label class="field">
+            <span>Email</span>
+            <input type="text" id="oEmail" />
+          </label>
+          <label class="field">
+            <span>Phone</span>
+            <input type="text" id="oPhone" />
+          </label>
+        </div>
+
+        <label class="field">
+          <span>Player Name</span>
+          <input type="text" id="oPlayer" />
+        </label>
+
+        <label class="field">
+          <span>Notes</span>
+          <textarea id="oNotes" rows="2"></textarea>
+        </label>
+
+        <div id="oMsg"></div>
+      </form>
+
+      <div class="modal-foot">
+        <div class="modal-foot-right">
+          <button type="button" class="btn-sm secondary" id="oCancel">Cancel</button>
+          <button type="button" class="btn-sm" id="oSave">Save Order</button>
         </div>
       </div>
     </div>

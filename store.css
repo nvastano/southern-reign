@@ -486,6 +486,58 @@
 .modal-foot-right { display: flex; gap: 10px; margin-left: auto; }
 .modal-foot .btn-sm { padding: 11px 22px; }
 
+.modal-sub {
+  font-size: 0.85rem;
+  color: var(--text-light);
+  margin: 0;
+  padding-bottom: 4px;
+  border-bottom: 1px solid #eef2f7;
+}
+
+.field select {
+  width: 100%;
+  padding: 11px 13px;
+  border: 1px solid #d6dee9;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  background: var(--white);
+}
+.field select:focus {
+  outline: none;
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(28,92,191,0.12);
+}
+
+.line-total-note {
+  background: var(--light-bg);
+  border-radius: 4px;
+  padding: 10px 14px;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--blue-dark);
+  text-align: center;
+}
+
+/* orders list */
+.order-row { cursor: pointer; }
+.order-row:hover td { background: #f0f6ff !important; }
+
+.status-badge {
+  display: inline-block;
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: var(--blue);
+  color: var(--white);
+  padding: 2px 7px;
+  border-radius: 10px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
 /* ===== ADMIN ON SMALL SCREENS =====
    The tables are too wide to scroll usefully on a phone, so each row
    becomes its own labelled card. */
@@ -556,6 +608,7 @@
   /* 16px keeps iOS from zooming when a field is focused. */
   .field input[type="text"],
   .field input[type="number"],
+  .field select,
   .field textarea { font-size: 16px; }
   .field-row { grid-template-columns: 1fr; }
   .modal-foot .btn-sm { padding: 13px 18px; }

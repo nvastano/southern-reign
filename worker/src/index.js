@@ -403,11 +403,53 @@ async function sendOrderEmail(env, order, body) {
 async function getOrders(env) {
   const data = await sheetsFetch(env, `/values/${encodeURIComponent(ORDERS_RANGE)}`);
   const rows = data.values || [];
-  return rows.slice(1).filter(r => r && r[0]).map(r => ({
+  return rows.slice(1).map((r, i) => ({
+    // Sheet row number, so an edit can target this exact line. Header is row 1.
+    row: i + 2,
     orderId: r[0], timestamp: r[1], parentName: r[2], email: r[3], phone: r[4],
     playerName: r[5], item: r[6], size: r[7], color: r[8],
     qty: r[9], unitPrice: r[10], lineTotal: r[11], notes: r[12], status: r[13],
-  }));
+  })).filter(o => o.orderId);
+}
+
+async function updateOrder(env, body) {
+  const reject = msg => { throw Object.assign(new Error(msg), { status: 400 }); };
+
+  const row = parseInt(body.row, 10);
+  if (!row || row < 2) reject('Invalid order row.');
+
+  const range = `Orders!A${row}:N${row}`;
+  const current = await sheetsFetch(env, `/values/${encodeURIComponent(range)}`);
+  const existing = (current.values && current.values[0]) || [];
+
+  if (!existing[0]) reject('That order line no longer exists. Refresh and try again.');
+  // Guard against the sheet being re-sorted or rows deleted since it was loaded.
+  if (body.orderId && existing[0] !== body.orderId) {
+    reject('This order has moved in the sheet. Refresh and try again.');
+  }
+
+  // Price follows the product, so switching the item re-prices the line.
+  const products = await getProducts(env);
+  const product = products.find(p => p.name === body.item);
+  const unitPrice = product ? product.price : (parseFloat(existing[10]) || 0);
+  const qty = Math.max(1, Math.min(99, parseInt(body.qty, 10) || 1));
+
+  const values = [[
+    existing[0], existing[1], // order id and timestamp never change
+    sanitizeCell(body.parentName), sanitizeCell(body.email), sanitizeCell(body.phone),
+    sanitizeCell(body.playerName), sanitizeCell(body.item),
+    sanitizeCell(body.size), sanitizeCell(body.color),
+    qty, unitPrice.toFixed(2), (unitPrice * qty).toFixed(2),
+    sanitizeCell(body.notes), sanitizeCell(body.status || 'NEW'),
+  ]];
+
+  await sheetsFetch(
+    env,
+    `/values/${encodeURIComponent(range)}?valueInputOption=RAW`,
+    { method: 'PUT', body: JSON.stringify({ values }) }
+  );
+
+  return { ok: true };
 }
 
 /* ------------------------------------------------------------------ */
@@ -534,6 +576,11 @@ export default {
       if (path === '/api/admin/orders' && request.method === 'GET') {
         await requireAdmin();
         return json({ orders: await getOrders(env) }, request, env);
+      }
+
+      if (path === '/api/admin/orders' && request.method === 'PUT') {
+        await requireAdmin();
+        return json(await updateOrder(env, await request.json()), request, env);
       }
 
       return json({ error: 'Not found' }, request, env, 404);

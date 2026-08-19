@@ -208,7 +208,9 @@
   $('modalCancel').addEventListener('click', closeModal);
   modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape' && !modal.hidden) closeModal();
+    if (e.key !== 'Escape') return;
+    if (!modal.hidden) closeModal();
+    if (!$('orderModal').hidden) closeOrderModal();
   });
   $('addProductBtn').addEventListener('click', () => openModal());
   $('fImage').addEventListener('change', syncThumb);
@@ -328,8 +330,8 @@
         return;
       }
       orderRows.innerHTML = orders.slice().reverse().map(o => `
-        <tr>
-          <td data-label="Order #">${esc(o.orderId)}</td>
+        <tr class="order-row" data-row="${o.row}" role="button" tabindex="0">
+          <td data-label="Order #">${esc(o.orderId)}${o.status && o.status !== 'NEW' ? `<span class="status-badge">${esc(o.status)}</span>` : ''}</td>
           <td data-label="Date">${esc((o.timestamp || '').slice(0, 10))}</td>
           <td data-label="Parent">${esc(o.parentName)}</td>
           <td data-label="Email">${esc(o.email)}</td>
@@ -342,11 +344,109 @@
           <td data-label="Total">$${esc(o.lineTotal)}</td>
           <td data-label="Notes">${esc(o.notes)}</td>
         </tr>`).join('');
+
+      orderRows.querySelectorAll('.order-row').forEach(tr => {
+        const open = () => openOrderModal(parseInt(tr.dataset.row, 10));
+        tr.addEventListener('click', open);
+        tr.addEventListener('keydown', e => {
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); }
+        });
+      });
     } catch (err) {
       orderRows.innerHTML = '';
       notify(err.message, 'error');
     }
   }
+
+  /* ---------------- order editing ---------------- */
+
+  const orderModal = $('orderModal');
+  let editingOrder = null;
+
+  function refreshLineTotal() {
+    const product = products.find(p => p.name === $('oItem').value);
+    const qty = Math.max(1, parseInt($('oQty').value, 10) || 1);
+    const unit = product ? product.price : parseFloat(editingOrder.unitPrice) || 0;
+    $('oTotalNote').textContent =
+      `${qty} × ${money(unit)} = ${money(unit * qty)}`;
+  }
+
+  function openOrderModal(row) {
+    const order = orders.find(o => o.row === row);
+    if (!order) return;
+    editingOrder = order;
+
+    // Product list, plus the recorded item if it has since been renamed or removed.
+    const names = products.map(p => p.name);
+    if (order.item && !names.includes(order.item)) names.unshift(order.item);
+    $('oItem').innerHTML = names
+      .map(n => `<option${n === order.item ? ' selected' : ''}>${esc(n)}</option>`)
+      .join('');
+
+    $('oSummary').textContent =
+      `${order.orderId} · submitted ${(order.timestamp || '').slice(0, 10)}`;
+    $('oSize').value = order.size || '';
+    $('oColor').value = order.color || '';
+    $('oQty').value = order.qty || 1;
+    $('oStatus').value = order.status || 'NEW';
+    $('oParent').value = order.parentName || '';
+    $('oEmail').value = order.email || '';
+    $('oPhone').value = order.phone || '';
+    $('oPlayer').value = order.playerName || '';
+    $('oNotes').value = order.notes || '';
+    $('oMsg').innerHTML = '';
+    refreshLineTotal();
+
+    orderModal.hidden = false;
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeOrderModal() {
+    orderModal.hidden = true;
+    document.body.style.overflow = '';
+    editingOrder = null;
+  }
+
+  $('oClose').addEventListener('click', closeOrderModal);
+  $('oCancel').addEventListener('click', closeOrderModal);
+  orderModal.addEventListener('click', e => { if (e.target === orderModal) closeOrderModal(); });
+  $('oItem').addEventListener('change', refreshLineTotal);
+  $('oQty').addEventListener('input', refreshLineTotal);
+  $('orderForm').addEventListener('submit', e => { e.preventDefault(); $('oSave').click(); });
+
+  $('oSave').addEventListener('click', async () => {
+    if (!editingOrder) return;
+    const btn = $('oSave');
+    btn.disabled = true;
+    btn.textContent = 'Saving…';
+    try {
+      await api('/api/admin/orders', {
+        method: 'PUT',
+        body: JSON.stringify({
+          row: editingOrder.row,
+          orderId: editingOrder.orderId,
+          item: $('oItem').value,
+          size: $('oSize').value.trim(),
+          color: $('oColor').value.trim(),
+          qty: $('oQty').value,
+          status: $('oStatus').value,
+          parentName: $('oParent').value.trim(),
+          email: $('oEmail').value.trim(),
+          phone: $('oPhone').value.trim(),
+          playerName: $('oPlayer').value.trim(),
+          notes: $('oNotes').value.trim(),
+        }),
+      });
+      closeOrderModal();
+      await loadOrders();
+      notify('Order updated in the Google Sheet.');
+    } catch (err) {
+      $('oMsg').innerHTML = `<div class="store-msg error">${esc(err.message)}</div>`;
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Save Order';
+    }
+  });
 
   $('refreshOrdersBtn').addEventListener('click', loadOrders);
 
