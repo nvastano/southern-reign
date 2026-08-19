@@ -268,6 +268,7 @@ async function createOrder(env, body) {
   const orderId = `SR-${Date.now().toString(36).toUpperCase()}`;
   const timestamp = new Date().toISOString();
   const rows = [];
+  const lines = [];
   let total = 0;
 
   for (const item of items) {
@@ -288,6 +289,13 @@ async function createOrder(env, body) {
       qty, product.price.toFixed(2), lineTotal.toFixed(2),
       sanitizeCell(body.notes), 'NEW',
     ]);
+
+    lines.push({
+      name: product.name,
+      variant: [item.size, item.color].filter(Boolean).join(' · '),
+      qty,
+      lineTotal: lineTotal.toFixed(2),
+    });
   }
 
   await sheetsFetch(
@@ -296,7 +304,100 @@ async function createOrder(env, body) {
     { method: 'POST', body: JSON.stringify({ values: rows }) }
   );
 
-  return { orderId, total: total.toFixed(2), itemCount: rows.length };
+  return { orderId, total: total.toFixed(2), itemCount: rows.length, lines };
+}
+
+/* ------------------------------------------------------------------ */
+/* confirmation email (Resend)                                         */
+/* ------------------------------------------------------------------ */
+
+const escapeHtml = s => String(s == null ? '' : s)
+  .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
+function orderEmailHtml(order, body) {
+  const rows = order.lines.map(l => `
+    <tr>
+      <td style="padding:10px 8px;border-bottom:1px solid #eef2f7;">
+        <strong>${escapeHtml(l.name)}</strong>
+        ${l.variant ? `<br><span style="color:#666;font-size:13px;">${escapeHtml(l.variant)}</span>` : ''}
+      </td>
+      <td style="padding:10px 8px;border-bottom:1px solid #eef2f7;text-align:center;">${l.qty}</td>
+      <td style="padding:10px 8px;border-bottom:1px solid #eef2f7;text-align:right;">$${l.lineTotal}</td>
+    </tr>`).join('');
+
+  return `<!DOCTYPE html><html><body style="margin:0;padding:0;background:#f7f9fc;font-family:Arial,Helvetica,sans-serif;color:#1a1a2e;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f7f9fc;padding:24px 12px;">
+    <tr><td align="center">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:8px;overflow:hidden;">
+        <tr><td style="background:#143f8a;padding:28px 24px;text-align:center;">
+          <div style="color:#C8E428;font-size:22px;font-weight:bold;letter-spacing:1px;text-transform:uppercase;">Southern Reign Baseball</div>
+          <div style="color:#ffffff;font-size:14px;margin-top:4px;">Team Store</div>
+        </td></tr>
+
+        <tr><td style="padding:28px 24px;">
+          <p style="margin:0 0 16px;font-size:16px;">Thanks${body.parentName ? `, ${escapeHtml(body.parentName)}` : ''}! We've received your order.</p>
+
+          <p style="margin:0 0 20px;font-size:15px;">
+            Confirmation number: <strong>${escapeHtml(order.orderId)}</strong>
+          </p>
+
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;font-size:14px;">
+            <tr>
+              <th align="left" style="padding:8px;background:#f7f9fc;font-size:12px;text-transform:uppercase;letter-spacing:1px;color:#555;">Item</th>
+              <th align="center" style="padding:8px;background:#f7f9fc;font-size:12px;text-transform:uppercase;letter-spacing:1px;color:#555;">Qty</th>
+              <th align="right" style="padding:8px;background:#f7f9fc;font-size:12px;text-transform:uppercase;letter-spacing:1px;color:#555;">Total</th>
+            </tr>
+            ${rows}
+            <tr>
+              <td colspan="2" style="padding:14px 8px;font-weight:bold;font-size:16px;">Order Total</td>
+              <td style="padding:14px 8px;text-align:right;font-weight:bold;font-size:16px;color:#1C5CBF;">$${escapeHtml(order.total)}</td>
+            </tr>
+          </table>
+
+          <div style="margin-top:24px;padding:14px 18px;background:#fff8e1;border-left:4px solid #C8E428;font-size:14px;color:#6b5d1f;">
+            <strong>What happens next:</strong> We'll collect payment once the full team order is
+            finalized. No payment is due right now — we'll be in touch with details.
+          </div>
+
+          ${body.playerName ? `<p style="margin:20px 0 0;font-size:14px;color:#555;">Player: ${escapeHtml(body.playerName)}</p>` : ''}
+          ${body.notes ? `<p style="margin:6px 0 0;font-size:14px;color:#555;">Your notes: ${escapeHtml(body.notes)}</p>` : ''}
+        </td></tr>
+
+        <tr><td style="background:#1a1a2e;padding:20px 24px;text-align:center;color:#ffffff;font-size:12px;">
+          Southern Reign Baseball &bull; Spring Hill, Tennessee<br>
+          <a href="mailto:SouthernReignBaseball@gmail.com" style="color:#C8E428;">SouthernReignBaseball@gmail.com</a>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+  </body></html>`;
+}
+
+async function sendOrderEmail(env, order, body) {
+  if (!env.RESEND_API_KEY) return { sent: false, reason: 'not configured' };
+
+  const from = env.EMAIL_FROM || 'Southern Reign Baseball <onboarding@resend.dev>';
+  const to = [body.email];
+  // Copy the team so somebody sees the order without opening the sheet.
+  if (env.TEAM_EMAIL) to.push(env.TEAM_EMAIL);
+
+  const res = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${env.RESEND_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      from,
+      to,
+      subject: `Order ${order.orderId} received — Southern Reign Team Store`,
+      html: orderEmailHtml(order, body),
+    }),
+  });
+
+  if (!res.ok) throw new Error(`Resend ${res.status}: ${await res.text()}`);
+  return { sent: true };
 }
 
 async function getOrders(env) {
@@ -384,8 +485,23 @@ export default {
       }
 
       if (path === '/api/orders' && request.method === 'POST') {
-        const result = await createOrder(env, await request.json());
-        return json({ ok: true, ...result }, request, env);
+        const body = await request.json();
+        const result = await createOrder(env, body);
+
+        // The order is already saved. A mail failure must not fail the request
+        // or the parent would resubmit and duplicate it.
+        let emailed = false;
+        try {
+          const mail = await sendOrderEmail(env, result, body);
+          emailed = mail.sent;
+        } catch (mailErr) {
+          console.error('Confirmation email failed:', mailErr);
+        }
+
+        return json({
+          ok: true, orderId: result.orderId, total: result.total,
+          itemCount: result.itemCount, emailed,
+        }, request, env);
       }
 
       // --- admin ---

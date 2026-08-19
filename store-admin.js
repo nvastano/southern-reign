@@ -2,22 +2,32 @@
   const API = window.STORE_API;
   const TOKEN_KEY = 'sr_store_token';
 
-  const loginView = document.getElementById('loginView');
-  const adminView = document.getElementById('adminView');
-  const loginForm = document.getElementById('loginForm');
-  const loginMsg = document.getElementById('loginMsg');
-  const loginBtn = document.getElementById('loginBtn');
-  const adminMsg = document.getElementById('adminMsg');
-  const productRows = document.getElementById('productRows');
-  const orderRows = document.getElementById('orderRows');
-  const productsPanel = document.getElementById('productsPanel');
-  const ordersPanel = document.getElementById('ordersPanel');
+  const $ = id => document.getElementById(id);
+
+  const loginView = $('loginView');
+  const adminView = $('adminView');
+  const loginForm = $('loginForm');
+  const loginMsg = $('loginMsg');
+  const loginBtn = $('loginBtn');
+  const adminMsg = $('adminMsg');
+  const productList = $('productList');
+  const orderRows = $('orderRows');
+  const productsPanel = $('productsPanel');
+  const ordersPanel = $('ordersPanel');
+
+  const modal = $('productModal');
+  const modalTitle = $('modalTitle');
+  const modalMsg = $('modalMsg');
+  const modalDelete = $('modalDelete');
 
   let token = sessionStorage.getItem(TOKEN_KEY) || '';
+  let products = [];
   let orders = [];
+  let editingIndex = -1; // -1 means we're adding a new product
 
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g,
     c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const money = n => '$' + (Number(n) || 0).toFixed(2);
 
   function notify(text, kind = 'success') {
     adminMsg.innerHTML = `<div class="store-msg ${kind}">${esc(text)}</div>`;
@@ -42,7 +52,7 @@
     return data;
   }
 
-  /* ---------- auth ---------- */
+  /* ---------------- auth ---------------- */
 
   loginForm.addEventListener('submit', async e => {
     e.preventDefault();
@@ -53,7 +63,7 @@
       const res = await fetch(`${API}/api/admin/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password: document.getElementById('password').value }),
+        body: JSON.stringify({ password: $('password').value }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Sign in failed');
@@ -71,8 +81,10 @@
   function signOut() {
     token = '';
     sessionStorage.removeItem(TOKEN_KEY);
+    closeModal();
     adminView.style.display = 'none';
     loginView.style.display = 'block';
+    $('password').value = '';
   }
 
   function showAdmin() {
@@ -81,7 +93,7 @@
     loadProducts();
   }
 
-  /* ---------- tabs ---------- */
+  /* ---------------- tabs ---------------- */
 
   document.querySelectorAll('.admin-tab').forEach(tab => {
     tab.addEventListener('click', () => {
@@ -96,136 +108,215 @@
     });
   });
 
-  /* ---------- products ---------- */
+  /* ---------------- product list ---------------- */
 
-  function productRow(p) {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td data-label="Name"><input type="text" data-f="name" value="${esc(p.name)}" /></td>
-      <td data-label="Price"><input type="number" data-f="price" step="0.01" min="0" value="${esc(p.price)}" style="min-width:80px;" /></td>
-      <td data-label="Category"><input type="text" data-f="category" value="${esc(p.category)}" /></td>
-      <td data-label="Sizes"><input type="text" data-f="sizes" value="${esc((p.sizes || []).join(', '))}" placeholder="YS, YM, YL, S, M, L" /></td>
-      <td data-label="Colors"><input type="text" data-f="colors" value="${esc((p.colors || []).join(', '))}" placeholder="Navy, White" /></td>
-      <td data-label="Description"><input type="text" data-f="description" value="${esc(p.description)}" /></td>
-      <td data-label="Image">
-        <div class="img-cell">
-          <img class="img-thumb${p.image ? '' : ' empty'}" data-f="thumb" src="${esc(p.image)}" alt="" />
-          <div class="img-controls">
-            <button type="button" class="btn-sm secondary" data-f="pick">Upload</button>
-            <input type="file" data-f="file" accept="image/jpeg,image/png,image/webp,image/gif" hidden />
-            <input type="text" data-f="image" value="${esc(p.image)}" placeholder="or paste a URL" />
+  function renderProducts() {
+    if (!products.length) {
+      productList.innerHTML = `
+        <div class="empty-state">
+          <p>No products yet.</p>
+          <p class="empty-sub">Click <strong>+ Add Product</strong> to create your first item.</p>
+        </div>`;
+      return;
+    }
+
+    productList.innerHTML = products.map((p, i) => {
+      const bits = [];
+      if (p.sizes && p.sizes.length) bits.push(`${p.sizes.length} size${p.sizes.length === 1 ? '' : 's'}`);
+      if (p.colors && p.colors.length) bits.push(p.colors.join(', '));
+      if (p.category) bits.unshift(p.category);
+
+      return `
+        <div class="product-row${p.active === false ? ' inactive' : ''}" data-index="${i}" role="button" tabindex="0">
+          ${p.image
+            ? `<img class="row-thumb" src="${esc(p.image)}" alt="" />`
+            : `<div class="row-thumb placeholder">&#9918;</div>`}
+          <div class="row-main">
+            <div class="row-name">${esc(p.name)}</div>
+            <div class="row-meta">${esc(bits.join(' · '))}</div>
           </div>
-        </div>
-      </td>
-      <td class="cell-active" data-label="Active"><input type="checkbox" data-f="active" ${p.active !== false ? 'checked' : ''} /></td>
-      <td class="cell-remove"><button class="btn-sm danger" data-f="remove"><span class="rm-x">&times;</span><span class="rm-text">Delete Product</span></button></td>`;
-    tr.dataset.id = p.id || '';
-    tr.querySelector('[data-f="remove"]').addEventListener('click', () => tr.remove());
-    wireImageCell(tr);
-    return tr;
+          <div class="row-right">
+            <div class="row-price">${money(p.price)}</div>
+            ${p.active === false ? '<span class="badge-off">Hidden</span>' : ''}
+          </div>
+          <span class="row-chevron">&rsaquo;</span>
+        </div>`;
+    }).join('');
+
+    productList.querySelectorAll('.product-row').forEach(row => {
+      const open = () => openModal(parseInt(row.dataset.index, 10));
+      row.addEventListener('click', open);
+      row.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); }
+      });
+    });
   }
 
-  /* keep the thumbnail in step with whatever the URL field says */
-  function syncThumb(tr) {
-    const url = tr.querySelector('[data-f="image"]').value.trim();
-    const thumb = tr.querySelector('[data-f="thumb"]');
+  async function loadProducts() {
+    productList.innerHTML = '<div class="empty-state"><p>Loading…</p></div>';
+    try {
+      const data = await api('/api/admin/products');
+      products = data.products || [];
+      renderProducts();
+    } catch (err) {
+      productList.innerHTML = '';
+      notify(err.message, 'error');
+    }
+  }
+
+  /* ---------------- modal ---------------- */
+
+  const splitList = v => String(v || '').split(',').map(s => s.trim()).filter(Boolean);
+
+  function syncThumb() {
+    const url = $('fImage').value.trim();
+    const thumb = $('fThumb');
     thumb.src = url;
     thumb.classList.toggle('empty', !url);
   }
 
-  function wireImageCell(tr) {
-    const pick = tr.querySelector('[data-f="pick"]');
-    const file = tr.querySelector('[data-f="file"]');
-    const urlInput = tr.querySelector('[data-f="image"]');
+  function openModal(index) {
+    editingIndex = typeof index === 'number' ? index : -1;
+    const p = editingIndex >= 0 ? products[editingIndex] : { active: true };
 
-    urlInput.addEventListener('change', () => syncThumb(tr));
-    pick.addEventListener('click', () => file.click());
+    modalTitle.textContent = editingIndex >= 0 ? 'Edit Product' : 'Add Product';
+    modalDelete.style.display = editingIndex >= 0 ? 'inline-block' : 'none';
+    modalMsg.innerHTML = '';
 
-    file.addEventListener('change', async () => {
-      const chosen = file.files && file.files[0];
-      if (!chosen) return;
+    $('fName').value = p.name || '';
+    $('fPrice').value = p.price != null && p.price !== '' ? p.price : '';
+    $('fCategory').value = p.category || '';
+    $('fSizes').value = (p.sizes || []).join(', ');
+    $('fColors').value = (p.colors || []).join(', ');
+    $('fDescription').value = p.description || '';
+    $('fImage').value = p.image || '';
+    $('fActive').checked = p.active !== false;
+    syncThumb();
 
-      const original = pick.textContent;
-      pick.disabled = true;
-      pick.textContent = 'Uploading…';
-      try {
-        const res = await fetch(`${API}/api/admin/upload`, {
-          method: 'POST',
-          headers: { 'Content-Type': chosen.type, Authorization: `Bearer ${token}` },
-          body: chosen,
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || 'Upload failed');
-
-        urlInput.value = data.url;
-        syncThumb(tr);
-        notify('Image uploaded. Click Save Changes to keep it.');
-      } catch (err) {
-        notify(err.message, 'error');
-      } finally {
-        pick.disabled = false;
-        pick.textContent = original;
-        file.value = '';
-      }
-    });
+    modal.hidden = false;
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => $('fName').focus(), 50);
   }
 
-  function collectProducts() {
-    return Array.from(productRows.querySelectorAll('tr')).map(tr => {
-      const val = f => tr.querySelector(`[data-f="${f}"]`).value.trim();
-      const list = f => val(f).split(',').map(s => s.trim()).filter(Boolean);
-      return {
-        // Keep the existing id so orders already referencing it stay valid.
-        id: tr.dataset.id || `p${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`,
-        name: val('name'),
-        price: parseFloat(val('price')) || 0,
-        category: val('category'),
-        sizes: list('sizes'),
-        colors: list('colors'),
-        description: val('description'),
-        image: val('image'),
-        active: tr.querySelector('[data-f="active"]').checked,
-      };
-    }).filter(p => p.name);
+  function closeModal() {
+    modal.hidden = true;
+    document.body.style.overflow = '';
+    editingIndex = -1;
   }
 
-  async function loadProducts() {
+  $('modalClose').addEventListener('click', closeModal);
+  $('modalCancel').addEventListener('click', closeModal);
+  modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && !modal.hidden) closeModal();
+  });
+  $('addProductBtn').addEventListener('click', () => openModal());
+  $('fImage').addEventListener('change', syncThumb);
+
+  /* save the whole catalog back — the API replaces the sheet contents */
+  async function persist(list, successMsg) {
+    const saveBtn = $('modalSave');
+    saveBtn.disabled = true;
+    modalDelete.disabled = true;
+    saveBtn.textContent = 'Saving…';
     try {
-      const { products } = await api('/api/admin/products');
-      productRows.innerHTML = '';
-      products.forEach(p => productRows.appendChild(productRow(p)));
-      if (!products.length) productRows.appendChild(productRow({ active: true }));
+      await api('/api/admin/products', {
+        method: 'PUT',
+        body: JSON.stringify({ products: list }),
+      });
+      closeModal();
+      await loadProducts();
+      notify(successMsg);
     } catch (err) {
-      notify(err.message, 'error');
+      modalMsg.innerHTML = `<div class="store-msg error">${esc(err.message)}</div>`;
+    } finally {
+      saveBtn.disabled = false;
+      modalDelete.disabled = false;
+      saveBtn.textContent = 'Save Product';
     }
   }
 
-  document.getElementById('addRowBtn').addEventListener('click', () => {
-    productRows.appendChild(productRow({ active: true, price: '' }));
+  // Enter inside the form should save, not reload the page.
+  $('productForm').addEventListener('submit', e => {
+    e.preventDefault();
+    $('modalSave').click();
   });
 
-  document.getElementById('saveBtn').addEventListener('click', async e => {
-    const btn = e.currentTarget;
+  $('modalSave').addEventListener('click', () => {
+    const name = $('fName').value.trim();
+    const price = parseFloat($('fPrice').value);
+
+    if (!name) {
+      modalMsg.innerHTML = '<div class="store-msg error">Product name is required.</div>';
+      return $('fName').focus();
+    }
+    if (!isFinite(price) || price < 0) {
+      modalMsg.innerHTML = '<div class="store-msg error">Enter a valid price.</div>';
+      return $('fPrice').focus();
+    }
+
+    const existing = editingIndex >= 0 ? products[editingIndex] : null;
+    const product = {
+      // Reuse the id when editing so existing orders keep pointing at this item.
+      id: (existing && existing.id) || `p${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`,
+      name,
+      price,
+      category: $('fCategory').value.trim(),
+      sizes: splitList($('fSizes').value),
+      colors: splitList($('fColors').value),
+      description: $('fDescription').value.trim(),
+      image: $('fImage').value.trim(),
+      active: $('fActive').checked,
+    };
+
+    const next = products.slice();
+    if (editingIndex >= 0) next[editingIndex] = product;
+    else next.push(product);
+
+    persist(next, editingIndex >= 0 ? 'Product updated.' : 'Product added.');
+  });
+
+  modalDelete.addEventListener('click', () => {
+    if (editingIndex < 0) return;
+    const p = products[editingIndex];
+    if (!confirm(`Delete "${p.name}"? This cannot be undone.`)) return;
+    const next = products.slice();
+    next.splice(editingIndex, 1);
+    persist(next, 'Product deleted.');
+  });
+
+  /* ---------------- image upload ---------------- */
+
+  $('fPick').addEventListener('click', () => $('fFile').click());
+
+  $('fFile').addEventListener('change', async () => {
+    const file = $('fFile').files && $('fFile').files[0];
+    if (!file) return;
+
+    const btn = $('fPick');
     btn.disabled = true;
-    btn.textContent = 'Saving…';
+    btn.textContent = 'Uploading…';
     try {
-      const products = collectProducts();
-      const { count } = await api('/api/admin/products', {
-        method: 'PUT',
-        body: JSON.stringify({ products }),
+      const res = await fetch(`${API}/api/admin/upload`, {
+        method: 'POST',
+        headers: { 'Content-Type': file.type, Authorization: `Bearer ${token}` },
+        body: file,
       });
-      // Re-load so newly generated ids come back from the sheet.
-      await loadProducts();
-      notify(`Saved ${count} product${count === 1 ? '' : 's'}.`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Upload failed');
+      $('fImage').value = data.url;
+      syncThumb();
+      modalMsg.innerHTML = '';
     } catch (err) {
-      notify(err.message, 'error');
+      modalMsg.innerHTML = `<div class="store-msg error">${esc(err.message)}</div>`;
     } finally {
       btn.disabled = false;
-      btn.textContent = 'Save Changes';
+      btn.textContent = 'Upload Photo';
+      $('fFile').value = '';
     }
   });
 
-  /* ---------- orders ---------- */
+  /* ---------------- orders ---------------- */
 
   async function loadOrders() {
     orderRows.innerHTML = '<tr><td colspan="12">Loading…</td></tr>';
@@ -257,9 +348,9 @@
     }
   }
 
-  document.getElementById('refreshOrdersBtn').addEventListener('click', loadOrders);
+  $('refreshOrdersBtn').addEventListener('click', loadOrders);
 
-  document.getElementById('exportBtn').addEventListener('click', () => {
+  $('exportBtn').addEventListener('click', () => {
     if (!orders.length) return notify('No orders to export.', 'error');
     const cols = ['orderId', 'timestamp', 'parentName', 'email', 'phone', 'playerName',
       'item', 'size', 'color', 'qty', 'unitPrice', 'lineTotal', 'notes', 'status'];
@@ -276,7 +367,7 @@
     URL.revokeObjectURL(url);
   });
 
-  /* ---------- boot ---------- */
+  /* ---------------- boot ---------------- */
 
   if (token) showAdmin();
 })();

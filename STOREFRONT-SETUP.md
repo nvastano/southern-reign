@@ -125,6 +125,32 @@ and the URL field keeps working as before.
 
 ---
 
+## Confirmation emails (optional)
+
+When a parent submits an order they get an emailed receipt. This is off until you add a
+[Resend](https://resend.com) API key — orders still work fine without it, parents just
+don't get an email.
+
+1. Sign up at [resend.com](https://resend.com) (free tier is 3,000 emails/month).
+2. **API Keys → Create API Key**, copy it.
+3. Add these to the Worker (**Settings → Variables and Secrets**):
+
+| Name | Type | Value |
+|---|---|---|
+| `RESEND_API_KEY` | Secret | your Resend API key |
+| `EMAIL_FROM` | Text | `Southern Reign Baseball <orders@southernreignbaseball.com>` |
+| `TEAM_EMAIL` | Text | `SouthernReignBaseball@gmail.com` — gets a copy of every order |
+
+4. Redeploy.
+
+**About `EMAIL_FROM`:** to send from `@southernreignbaseball.com` you must verify the
+domain in Resend (**Domains → Add Domain**) and add the DNS records it gives you. Until
+then, leave `EMAIL_FROM` unset and it falls back to Resend's `onboarding@resend.dev`,
+which works immediately but looks unbranded.
+
+If the email fails to send, the order is still saved to the Sheet — a mail outage can
+never lose an order. The failure is logged in the Worker's logs.
+
 ## Giving someone else admin access
 
 Share the admin URL and the password. Everyone shares one password — to revoke access,

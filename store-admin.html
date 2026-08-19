@@ -60,27 +60,14 @@
         <div id="productsPanel">
           <div class="admin-bar">
             <p style="font-size:0.88rem; color:var(--text-light); margin:0;">
-              Separate sizes and colors with commas. Uncheck <strong>Active</strong> to hide an item
-              from the store without deleting it.
+              Tap a product to edit it. Inactive products stay here but are hidden from the store.
             </p>
-            <div style="display:flex; gap:8px;">
-              <button class="btn-sm secondary" id="addRowBtn">+ Add Product</button>
-              <button class="btn-sm" id="saveBtn">Save Changes</button>
+            <div>
+              <button class="btn-sm" id="addProductBtn">+ Add Product</button>
             </div>
           </div>
 
-          <div class="admin-table-wrap">
-            <table class="admin-table">
-              <thead>
-                <tr>
-                  <th>Name</th><th>Price</th><th>Category</th><th>Sizes</th>
-                  <th>Colors</th><th>Description</th><th>Image URL</th>
-                  <th>Active</th><th></th>
-                </tr>
-              </thead>
-              <tbody id="productRows"></tbody>
-            </table>
-          </div>
+          <div id="productList" class="product-list"></div>
         </div>
 
         <!-- ORDERS -->
@@ -112,6 +99,76 @@
 
     </div>
   </section>
+
+  <!-- PRODUCT MODAL -->
+  <div class="modal-overlay" id="productModal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal-head">
+        <h3 id="modalTitle">Add Product</h3>
+        <button type="button" class="modal-close" id="modalClose" aria-label="Close">&times;</button>
+      </div>
+
+      <form class="modal-body" id="productForm">
+        <label class="field">
+          <span>Product Name</span>
+          <input type="text" id="fName" required placeholder="Southern Reign Hoodie" />
+        </label>
+
+        <div class="field-row">
+          <label class="field">
+            <span>Price</span>
+            <input type="number" id="fPrice" step="0.01" min="0" required placeholder="35.00" />
+          </label>
+          <label class="field">
+            <span>Category</span>
+            <input type="text" id="fCategory" placeholder="Outerwear" />
+          </label>
+        </div>
+
+        <label class="field">
+          <span>Sizes <em>separate with commas</em></span>
+          <input type="text" id="fSizes" placeholder="YS, YM, YL, S, M, L, XL" />
+        </label>
+
+        <label class="field">
+          <span>Colors <em>separate with commas</em></span>
+          <input type="text" id="fColors" placeholder="Navy, White, Gray" />
+        </label>
+
+        <label class="field">
+          <span>Description</span>
+          <textarea id="fDescription" rows="3" placeholder="Optional details parents should know"></textarea>
+        </label>
+
+        <div class="field">
+          <span>Product Photo</span>
+          <div class="img-cell">
+            <img class="img-thumb empty" id="fThumb" src="" alt="" />
+            <div class="img-controls">
+              <button type="button" class="btn-sm secondary" id="fPick">Upload Photo</button>
+              <input type="file" id="fFile" accept="image/jpeg,image/png,image/webp,image/gif" hidden />
+              <input type="text" id="fImage" placeholder="or paste an image URL" />
+            </div>
+          </div>
+        </div>
+
+        <label class="field-check">
+          <input type="checkbox" id="fActive" checked />
+          <span>Active — show this product in the store</span>
+        </label>
+
+        <div id="modalMsg"></div>
+      </form>
+
+      <div class="modal-foot">
+        <button type="button" class="btn-sm danger" id="modalDelete">Delete</button>
+        <div class="modal-foot-right">
+          <button type="button" class="btn-sm secondary" id="modalCancel">Cancel</button>
+          <button type="button" class="btn-sm" id="modalSave">Save Product</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <script src="store-config.js"></script>
   <script src="store-admin.js"></script>

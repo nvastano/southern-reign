@@ -169,7 +169,9 @@
         <div class="store-msg success" style="max-width:520px;margin:0 auto;text-align:left;">
           <strong>Order received!</strong><br />
           Your confirmation number is <strong>${esc(data.orderId)}</strong> for a total of
-          ${esc(money(data.total))}. We'll be in touch about payment once the team order is finalized.
+          ${esc(money(data.total))}.
+          ${data.emailed ? 'A confirmation email is on its way. ' : ''}We'll be in touch about
+          payment once the team order is finalized.
         </div>`;
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err) {
