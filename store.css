@@ -815,6 +815,89 @@
 .order-contact a { color: var(--blue); text-decoration: underline; }
 .order-notes { font-size: 0.82rem; color: var(--text-light); margin-top: 8px; }
 
+/* inline status control on each order card */
+.order-status {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--white);
+  background: #8794a5;
+  border: none;
+  border-radius: 12px;
+  padding: 5px 9px;
+  cursor: pointer;
+  max-width: 120px;
+}
+.order-status:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+.order-status option { background: var(--white); color: var(--text); }
+.order-status.st-paid { background: #2e9e4f; }
+.order-status.st-cancelled { background: #c0392b; }
+.order-status.st-delivered { background: #6b4fbb; }
+.order-status.st-ordered { background: #d98324; }
+.order-status.st-confirmed { background: var(--blue); }
+.order-status.st-new { background: #8794a5; }
+.order-status.st-mixed { background: #4a5568; }
+
+.order-pick { width: 20px; height: 20px; flex-shrink: 0; cursor: pointer; }
+.order-card.selected { border-color: var(--blue); background: #f5f9ff; }
+
+/* bulk action bar */
+.bulk-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  background: var(--blue-dark);
+  border-radius: 6px;
+  padding: 11px 16px;
+  margin-bottom: 14px;
+}
+.bulk-bar[hidden] { display: none; }
+.bulk-all {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--white);
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.84rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.bulk-all input { width: 19px; height: 19px; cursor: pointer; }
+.bulk-actions { display: flex; gap: 8px; align-items: center; }
+.bulk-actions select {
+  padding: 8px 11px;
+  border: none;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 0.87rem;
+  background: var(--white);
+}
+.bulk-actions .btn-sm { background: var(--yellow); color: var(--blue-dark); }
+.bulk-actions .btn-sm:hover:not(:disabled) { background: #d6ef4a; }
+
+/* export picker */
+.modal-sm { max-width: 420px; }
+.ex-status-list { display: flex; flex-direction: column; gap: 2px; }
+.ex-status {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 11px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.92rem;
+}
+.ex-status:hover { background: var(--light-bg); }
+.ex-status input { width: 19px; height: 19px; flex-shrink: 0; }
+.ex-status.empty { opacity: 0.4; cursor: default; }
+.ex-name { flex: 1; font-weight: 600; }
+.ex-count { font-size: 0.8rem; color: var(--text-light); }
+
 /* status colours */
 .status-badge.st-paid { background: #2e9e4f; }
 .status-badge.st-cancelled { background: #c0392b; }
@@ -914,6 +997,16 @@
   .row-thumb { width: 46px; height: 46px; }
   .row-chevron { display: none; }
   .product-row { gap: 12px; padding: 12px; }
+
+  /* Order card: total and status sit under each other so both stay legible. */
+  .oc-right { flex-direction: column; align-items: flex-end; gap: 6px; }
+  .oc-caret { display: none; }
+  .order-status { font-size: 0.68rem; max-width: 108px; }
+  .order-head { gap: 10px; }
+
+  .bulk-bar { flex-direction: column; align-items: stretch; gap: 10px; }
+  .bulk-actions select { flex: 1; font-size: 16px; }
+  .bulk-actions .btn-sm { padding: 11px 18px; }
 
   .cell-edit { text-align: left; }
   .cell-edit .btn-sm { width: 100%; padding: 12px; }

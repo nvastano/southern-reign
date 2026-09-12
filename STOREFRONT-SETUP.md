@@ -175,6 +175,23 @@ Every submitted order appends **one row per line item** to the `Orders` tab, gro
 a short sequential `order_id` like `SR-104`. Filter or sort that tab and hand it straight to your
 producer, or use **Download CSV** on the admin Orders tab.
 
+## Running a preorder round
+
+The Orders tab is built around opening the store, closing it, and processing a batch:
+
+1. **Open the store** — parents order, everything lands as **New**.
+2. **Close the store** — hide products by unchecking Active, or just stop sharing the link.
+3. **Work the batch** — tick the orders you want and use the bulk bar to move them
+   through Confirmed → Paid → Ordered → Delivered. The dropdown on a single card
+   changes just that order.
+4. **Export** — click Export, tick the statuses you want, and download. Typically you
+   export **Paid** to hand to the producer.
+
+Status lives in column N of the Sheet, so editing it there works too.
+
+A card shows **Mixed** when its lines disagree (e.g. one line cancelled). Picking a
+status from that dropdown sets every line of the order to it.
+
 ## Security notes
 
 - Prices come from the Sheet, never from the browser — a parent can't edit a price in

@@ -214,6 +214,7 @@
     if (e.key !== 'Escape') return;
     if (!modal.hidden) closeModal();
     if (!$('orderModal').hidden) closeOrderModal();
+    if (!$('exportModal').hidden) closeExport();
   });
   $('addProductBtn').addEventListener('click', () => openModal());
   $('fImage').addEventListener('change', syncThumb);
@@ -334,6 +335,15 @@
 
   const orderList = $('orderList');
   let expanded = new Set();
+  let selected = new Set();   // order ids ticked for a bulk change
+
+  const STATUSES = ['NEW', 'CONFIRMED', 'PAID', 'ORDERED', 'DELIVERED', 'CANCELLED'];
+  const STATUS_LABEL = {
+    NEW: 'New', CONFIRMED: 'Confirmed', PAID: 'Paid',
+    ORDERED: 'Ordered', DELIVERED: 'Delivered', CANCELLED: 'Cancelled',
+  };
+  // An order's status is the one its lines agree on; 'MIXED' when they don't.
+  const groupStatus = g => (g.statuses.size === 1 ? Array.from(g.statuses)[0] : 'MIXED');
 
   /* group the flat line rows into one card per order */
   function groupOrders(list) {
@@ -390,10 +400,14 @@
 
     orderList.innerHTML = groups.map(g => {
       const open = expanded.has(g.orderId);
-      const badges = Array.from(g.statuses)
-        .filter(st => st && st !== 'NEW')
-        .map(st => `<span class="status-badge st-${esc(st.toLowerCase())}">${esc(st)}</span>`)
-        .join('');
+      const st = groupStatus(g);
+      const statusSelect = `
+        <select class="order-status st-${esc(st.toLowerCase())}" data-status-for="${esc(g.orderId)}"
+                aria-label="Status for ${esc(g.orderId)}">
+          ${st === 'MIXED' ? '<option value="" selected>Mixed</option>' : ''}
+          ${STATUSES.map(v =>
+            `<option value="${v}"${v === st ? ' selected' : ''}>${STATUS_LABEL[v]}</option>`).join('')}
+        </select>`;
 
       const lines = g.lines.map(l => `
         <div class="oline">
@@ -414,10 +428,12 @@
       ].filter(Boolean).join(' &nbsp;·&nbsp; ');
 
       return `
-        <div class="order-card${open ? ' open' : ''}" data-oid="${esc(g.orderId)}">
+        <div class="order-card${open ? ' open' : ''}${selected.has(g.orderId) ? ' selected' : ''}" data-oid="${esc(g.orderId)}">
           <div class="order-head" role="button" tabindex="0">
+            <input type="checkbox" class="order-pick" data-pick="${esc(g.orderId)}"
+                   ${selected.has(g.orderId) ? 'checked' : ''} aria-label="Select ${esc(g.orderId)}" />
             <div class="oc-left">
-              <div class="oc-name">${esc(g.parentName || '—')}${badges}</div>
+              <div class="oc-name">${esc(g.parentName || '—')}</div>
               <div class="oc-meta">
                 ${esc(g.orderId)} &nbsp;·&nbsp; ${esc((g.timestamp || '').slice(0, 10))}
                 &nbsp;·&nbsp; ${g.items} item${g.items === 1 ? '' : 's'}
@@ -425,6 +441,7 @@
             </div>
             <div class="oc-right">
               <div class="oc-total">${money(g.total)}</div>
+              ${statusSelect}
               <span class="oc-caret">${open ? '&minus;' : '+'}</span>
             </div>
           </div>
@@ -455,6 +472,70 @@
         openOrderModal(parseInt(btn.dataset.edit, 10));
       });
     });
+
+    // Changing the dropdown writes that status to every line of the order.
+    orderList.querySelectorAll('[data-status-for]').forEach(sel => {
+      sel.addEventListener('click', e => e.stopPropagation());
+      sel.addEventListener('change', async e => {
+        e.stopPropagation();
+        const value = sel.value;
+        if (!value) return;
+        sel.disabled = true;
+        await applyStatus([sel.dataset.statusFor], value);
+      });
+    });
+
+    orderList.querySelectorAll('[data-pick]').forEach(box => {
+      box.addEventListener('click', e => e.stopPropagation());
+      box.addEventListener('change', () => {
+        const id = box.dataset.pick;
+        if (box.checked) selected.add(id); else selected.delete(id);
+        renderOrders();
+      });
+    });
+
+    syncBulkBar(groups);
+  }
+
+  /* ---------------- status changes ---------------- */
+
+  function syncBulkBar(visibleGroups) {
+    const n = selected.size;
+    $('bulkBar').hidden = !visibleGroups.length;
+    $('bulkCount').textContent = n
+      ? `${n} order${n === 1 ? '' : 's'} selected`
+      : 'Select all shown';
+    $('bulkApply').disabled = !n || !$('bulkStatus').value;
+
+    const allShown = visibleGroups.length > 0 &&
+      visibleGroups.every(g => selected.has(g.orderId));
+    $('selectAll').checked = allShown;
+  }
+
+  /** Write `status` to every line of each given order id. */
+  async function applyStatus(orderIds, status) {
+    const wanted = new Set(orderIds);
+    const targets = orders
+      .filter(o => wanted.has(o.orderId))
+      .map(o => ({ row: o.row, orderId: o.orderId }));
+
+    if (!targets.length) return;
+
+    try {
+      const res = await api('/api/admin/orders/status', {
+        method: 'POST',
+        body: JSON.stringify({ targets, status }),
+      });
+      await loadOrders();
+      const label = STATUS_LABEL[status] || status;
+      notify(
+        `${orderIds.length} order${orderIds.length === 1 ? '' : 's'} marked ${label}.` +
+        (res.skipped ? ` ${res.skipped} line(s) skipped — refresh and retry those.` : '')
+      );
+    } catch (err) {
+      notify(err.message, 'error');
+      await loadOrders();
+    }
   }
 
   async function loadOrders() {
@@ -471,6 +552,32 @@
 
   $('orderSearch').addEventListener('input', renderOrders);
   $('orderStatusFilter').addEventListener('change', renderOrders);
+
+  $('selectAll').addEventListener('change', () => {
+    const shown = groupOrders(orders).filter(matchesFilters);
+    if ($('selectAll').checked) shown.forEach(g => selected.add(g.orderId));
+    else shown.forEach(g => selected.delete(g.orderId));
+    renderOrders();
+  });
+
+  $('bulkStatus').addEventListener('change', () => {
+    $('bulkApply').disabled = !selected.size || !$('bulkStatus').value;
+  });
+
+  $('bulkApply').addEventListener('click', async () => {
+    const status = $('bulkStatus').value;
+    const ids = Array.from(selected);
+    if (!status || !ids.length) return;
+
+    const btn = $('bulkApply');
+    btn.disabled = true;
+    btn.textContent = 'Saving…';
+    await applyStatus(ids, status);
+    selected.clear();
+    $('bulkStatus').value = '';
+    btn.textContent = 'Apply';
+    renderOrders();
+  });
 
   /* ---------------- order editing ---------------- */
 
@@ -566,21 +673,93 @@
 
   $('refreshOrdersBtn').addEventListener('click', loadOrders);
 
-  $('exportBtn').addEventListener('click', () => {
-    if (!orders.length) return notify('No orders to export.', 'error');
-    const cols = ['orderId', 'timestamp', 'parentName', 'email', 'phone', 'playerName',
-      'item', 'size', 'color', 'qty', 'unitPrice', 'lineTotal', 'notes', 'status', 'custom'];
-    const cell = v => `"${String(v == null ? '' : v).replace(/"/g, '""')}"`;
-    const csv = [cols.join(',')]
-      .concat(orders.map(o => cols.map(c => cell(o[c])).join(',')))
-      .join('\n');
+  /* ---------------- export ---------------- */
 
-    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+  const exportModal = $('exportModal');
+
+  $('exportBtn').addEventListener('click', () => {
+    // Count lines per status so you can see what you're about to export.
+    const counts = {};
+    orders.forEach(o => {
+      const st = (o.status || 'NEW').toUpperCase();
+      counts[st] = (counts[st] || 0) + 1;
+    });
+
+    const filtered = $('orderStatusFilter').value;
+    $('exStatusList').innerHTML = STATUSES.map(st => {
+      const n = counts[st] || 0;
+      // Default to whatever the list is filtered to, else everything with lines.
+      const on = filtered ? st === filtered : n > 0;
+      return `
+        <label class="ex-status${n ? '' : ' empty'}">
+          <input type="checkbox" value="${st}" ${on && n ? 'checked' : ''} ${n ? '' : 'disabled'} />
+          <span class="ex-name">${STATUS_LABEL[st]}</span>
+          <span class="ex-count">${n} line${n === 1 ? '' : 's'}</span>
+        </label>`;
+    }).join('');
+
+    $('exMsg').innerHTML = '';
+    exportModal.hidden = false;
+    document.body.style.overflow = 'hidden';
+  });
+
+  function closeExport() {
+    exportModal.hidden = true;
+    document.body.style.overflow = '';
+  }
+  $('exClose').addEventListener('click', closeExport);
+  $('exCancel').addEventListener('click', closeExport);
+  exportModal.addEventListener('click', e => { if (e.target === exportModal) closeExport(); });
+
+  const csvCell = v => `"${String(v == null ? '' : v).replace(/"/g, '""')}"`;
+
+  $('exDownload').addEventListener('click', () => {
+    const chosen = new Set(
+      Array.from($('exStatusList').querySelectorAll('input:checked')).map(i => i.value)
+    );
+    if (!chosen.size) {
+      $('exMsg').innerHTML = '<div class="store-msg error">Pick at least one status.</div>';
+      return;
+    }
+
+    const rows = orders.filter(o => chosen.has((o.status || 'NEW').toUpperCase()));
+    if (!rows.length) {
+      $('exMsg').innerHTML = '<div class="store-msg error">No orders with those statuses.</div>';
+      return;
+    }
+
+    const cols = ['orderId', 'timestamp', 'parentName', 'email', 'phone', 'playerName',
+      'item', 'size', 'color', 'custom', 'qty', 'unitPrice', 'lineTotal', 'notes', 'status'];
+    const lines = [cols.join(',')]
+      .concat(rows.map(o => cols.map(c => csvCell(o[c])).join(',')));
+
+    // Optional roll-up so the producer can see totals per item/size/colour.
+    if ($('exGroupRows').checked) {
+      const totals = new Map();
+      rows.forEach(o => {
+        const key = [o.item, o.size, o.color, o.custom].join(' | ');
+        totals.set(key, (totals.get(key) || 0) + (parseInt(o.qty, 10) || 0));
+      });
+      lines.push('');
+      lines.push(['SUMMARY', 'item', 'size', 'color', 'custom', 'qty'].join(','));
+      Array.from(totals.entries()).sort().forEach(([key, qty]) => {
+        const [item, size, color, custom] = key.split(' | ');
+        lines.push(['', item, size, color, custom, qty].map(csvCell).join(','));
+      });
+    }
+
+    const stamp = new Date().toISOString().slice(0, 10);
+    const tag = chosen.size === STATUSES.length ? 'all' :
+      Array.from(chosen).map(s => s.toLowerCase()).join('-');
+
+    const url = URL.createObjectURL(new Blob([lines.join('\n')], { type: 'text/csv' }));
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'southern-reign-orders.csv';
+    a.download = `southern-reign-orders-${tag}-${stamp}.csv`;
     a.click();
     URL.revokeObjectURL(url);
+    closeExport();
+    notify(`Exported ${rows.length} line${rows.length === 1 ? '' : 's'}.`);
   });
 
   /* ---------------- boot ---------------- */

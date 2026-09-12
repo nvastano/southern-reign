@@ -24,6 +24,9 @@ const MAX_CUSTOM_LENGTH = 60;
 // First order number issued when the sheet has none yet.
 const ORDER_NUMBER_START = 101;
 
+// Allowed order statuses, in the order a preorder round moves through them.
+const ORDER_STATUSES = ['NEW', 'CONFIRMED', 'PAID', 'ORDERED', 'DELIVERED', 'CANCELLED'];
+
 // Payment details shown on the confirmation email. Overridable per-deployment
 // with PAYMENT_APP / PAYMENT_NAME / PAYMENT_HANDLE vars on the Worker.
 const PAYMENT_DEFAULTS = {
@@ -469,6 +472,46 @@ async function sendOrderEmail(env, order, body) {
   return { sent: true };
 }
 
+/**
+ * Set the status on many order lines at once. Takes {row, orderId} pairs so the
+ * order id can be re-checked against the sheet before anything is written —
+ * a re-sorted or edited sheet can't make a status land on the wrong order.
+ */
+async function setOrderStatuses(env, body) {
+  const reject = msg => { throw Object.assign(new Error(msg), { status: 400 }); };
+
+  const status = String(body.status || '').trim().toUpperCase();
+  if (!ORDER_STATUSES.includes(status)) reject(`Unknown status: ${status}`);
+
+  const targets = Array.isArray(body.targets) ? body.targets : [];
+  if (!targets.length) reject('No orders selected.');
+
+  const current = await sheetsFetch(env, `/values/${encodeURIComponent('Orders!A:A')}`);
+  const ids = current.values || [];
+
+  const data = [];
+  let stale = 0;
+  for (const t of targets) {
+    const row = parseInt(t.row, 10);
+    if (!row || row < 2) continue;
+    const onSheet = String((ids[row - 1] || [])[0] || '').trim();
+    // Skip rather than fail: one moved row shouldn't block the whole batch.
+    if (!onSheet || (t.orderId && onSheet !== t.orderId)) { stale++; continue; }
+    data.push({ range: `Orders!N${row}`, values: [[status]] });
+  }
+
+  if (!data.length) {
+    reject('Those orders have moved in the sheet. Refresh and try again.');
+  }
+
+  await sheetsFetch(env, '/values:batchUpdate', {
+    method: 'POST',
+    body: JSON.stringify({ valueInputOption: 'RAW', data }),
+  });
+
+  return { ok: true, updated: data.length, skipped: stale, status };
+}
+
 async function getOrders(env) {
   const data = await sheetsFetch(env, `/values/${encodeURIComponent(ORDERS_RANGE)}`);
   const rows = data.values || [];
@@ -652,6 +695,11 @@ export default {
       if (path === '/api/admin/orders' && request.method === 'PUT') {
         await requireAdmin();
         return json(await updateOrder(env, await request.json()), request, env);
+      }
+
+      if (path === '/api/admin/orders/status' && request.method === 'POST') {
+        await requireAdmin();
+        return json(await setOrderStatuses(env, await request.json()), request, env);
       }
 
       return json({ error: 'Not found' }, request, env, 404);
