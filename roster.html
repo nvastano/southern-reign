@@ -60,6 +60,21 @@
           <div class="roster-row"><span class="rn">99</span><span class="rname">Wilder Strong</span></div>
         </div>
 
+        <div class="staff-label">Head Coaches</div>
+        <div class="staff-list">
+          <div class="staff-row">Jeff Kushnir</div>
+          <div class="staff-row">Bruce DiMarco</div>
+        </div>
+
+        <div class="staff-label">Assistant Coaches</div>
+        <div class="staff-list">
+          <div class="staff-row">Issac Summers</div>
+          <div class="staff-row">Christian Irvine</div>
+          <div class="staff-row">John Beal</div>
+          <div class="staff-row">Jake Henry</div>
+          <div class="staff-row">Conner Moore</div>
+        </div>
+
         <div class="roster-tagline">Team. Together. Reign.</div>
 
       </div>
@@ -141,6 +156,44 @@
       color: #fff;
       letter-spacing: 0.08em;
       text-transform: uppercase;
+    }
+
+    .staff-label {
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--yellow);
+      margin: 36px 0 14px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(200,228,40,0.3);
+    }
+
+    .staff-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .staff-row {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-left: 3px solid var(--yellow);
+      border-radius: 4px;
+      padding: 13px 20px;
+      font-family: 'Oswald', sans-serif;
+      font-size: 1.05rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #fff;
+      transition: background 0.15s, transform 0.15s;
+    }
+
+    .staff-row:hover {
+      background: rgba(200,228,40,0.1);
+      transform: translateX(4px);
     }
 
     .roster-tagline {
