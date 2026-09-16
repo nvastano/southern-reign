@@ -171,7 +171,7 @@
         </div>
 
         <div class="field">
-          <span>Product Photo</span>
+          <span>Main Photo <em>used when a colour has no photo of its own</em></span>
           <div class="img-cell">
             <img class="img-thumb empty" id="fThumb" src="" alt="" />
             <div class="img-controls">
@@ -180,6 +180,11 @@
               <input type="text" id="fImage" placeholder="or paste an image URL" />
             </div>
           </div>
+        </div>
+
+        <div class="field" id="fColorPhotosWrap" hidden>
+          <span>Photo Per Colour <em>optional — shoppers can switch between them</em></span>
+          <div id="fColorPhotos" class="color-photos"></div>
         </div>
 
         <label class="field-check">

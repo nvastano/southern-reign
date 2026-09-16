@@ -27,9 +27,9 @@ Make a new sheet with **two tabs**, named exactly `Products` and `Orders`.
 
 **`Products` tab — row 1 is headers:**
 
-| A | B | C | D | E | F | G | H | I | J | K |
-|---|---|---|---|---|---|---|---|---|---|---|
-| id | name | description | category | price | image | sizes | colors | active | custom_label | custom_required |
+| A | B | C | D | E | F | G | H | I | J | K | L |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| id | name | description | category | price | image | sizes | colors | active | custom_label | custom_required | color_images |
 
 Leave `id` blank for new rows — the admin page fills it in. `sizes` and `colors` are
 comma-separated (`YS, YM, YL, S, M, L`). `active` is `TRUE` or `FALSE`.
@@ -224,6 +224,28 @@ own icon and name:
 The store manifest sets `display: standalone`, so once saved it opens without browser
 chrome — it behaves like an app. Icons are generated from `assets/logo.jpg`; to
 regenerate them, the source is in the repo history under the icon build step.
+
+## One product, several colour photos
+
+A product stays a single item with a colour dropdown — you just give each colour its own
+photo so shoppers can see what they're picking.
+
+1. Open the product and list the colours in **Colors**, e.g. `Navy, Gray, White`.
+2. A **Photo Per Colour** section appears with one row per colour. Upload a photo for
+   any colour you have a shot of.
+3. Save.
+
+On the store, that product shows a row of thumbnails under the price. Tapping one swaps
+the main photo and sets the colour dropdown; changing the dropdown moves the thumbnails
+to match. A colour with no photo of its own simply falls back to the **Main Photo**, so
+you can add pictures for two of five colours and the rest still work.
+
+The thumbnail strip only appears when at least two colours have photos — a single-photo
+product looks exactly as it did before.
+
+Orders record the chosen colour as they always have; nothing changes downstream. Column L
+holds this as JSON, written by the admin page — you never need to edit it by hand, and a
+malformed value is ignored rather than breaking the catalogue.
 
 ## Customizable products
 

@@ -125,6 +125,9 @@
       if (p.colors && p.colors.length) bits.push(p.colors.join(', '));
       if (p.category) bits.unshift(p.category);
       if (p.customLabel) bits.push(`✎ ${p.customLabel}`);
+      if (p.colorImages && p.colorImages.length) {
+        bits.push(`${p.colorImages.length} colour photo${p.colorImages.length === 1 ? '' : 's'}`);
+      }
 
       return `
         <div class="product-row${p.active === false ? ' inactive' : ''}" data-index="${i}" role="button" tabindex="0">
@@ -193,7 +196,12 @@
     $('fCustomLabel').value = p.customLabel || '';
     $('fCustomRequired').checked = !!p.customRequired;
     $('fActive').checked = p.active !== false;
+
+    colorPhotos = {};
+    (p.colorImages || []).forEach(ci => { colorPhotos[ci.color] = ci.image; });
+
     syncCustomRequired();
+    renderColorPhotos();
     syncThumb();
 
     modal.hidden = false;
@@ -218,6 +226,81 @@
   });
   $('addProductBtn').addEventListener('click', () => openModal());
   $('fImage').addEventListener('change', syncThumb);
+
+  /* Colour photos: one upload slot per colour typed into the Colors field. */
+  let colorPhotos = {}; // { colour: imageUrl }
+
+  function renderColorPhotos() {
+    const colors = splitList($('fColors').value);
+    $('fColorPhotosWrap').hidden = !colors.length;
+    if (!colors.length) return;
+
+    $('fColorPhotos').innerHTML = colors.map(c => {
+      const url = colorPhotos[c] || '';
+      return `
+        <div class="color-photo" data-color="${esc(c)}">
+          <img class="img-thumb${url ? '' : ' empty'}" data-cp="thumb" src="${esc(url)}" alt="" />
+          <div class="cp-main">
+            <div class="cp-name">${esc(c)}</div>
+            <input type="text" data-cp="url" value="${esc(url)}" placeholder="no photo — uses the main one" />
+          </div>
+          <button type="button" class="btn-sm secondary" data-cp="pick">Upload</button>
+          <input type="file" data-cp="file" accept="image/jpeg,image/png,image/webp,image/gif" hidden />
+          ${url ? '<button type="button" class="btn-sm danger" data-cp="clear">&times;</button>' : ''}
+        </div>`;
+    }).join('');
+
+    $('fColorPhotos').querySelectorAll('.color-photo').forEach(row => {
+      const color = row.dataset.color;
+      const urlInput = row.querySelector('[data-cp="url"]');
+      const file = row.querySelector('[data-cp="file"]');
+      const pick = row.querySelector('[data-cp="pick"]');
+      const clear = row.querySelector('[data-cp="clear"]');
+
+      urlInput.addEventListener('change', () => {
+        colorPhotos[color] = urlInput.value.trim();
+        renderColorPhotos();
+      });
+
+      pick.addEventListener('click', () => file.click());
+
+      file.addEventListener('change', async () => {
+        const chosen = file.files && file.files[0];
+        if (!chosen) return;
+        pick.disabled = true;
+        pick.textContent = '…';
+        try {
+          const url = await uploadImage(chosen);
+          colorPhotos[color] = url;
+          renderColorPhotos();
+          modalMsg.innerHTML = '';
+        } catch (err) {
+          modalMsg.innerHTML = `<div class="store-msg error">${esc(err.message)}</div>`;
+          pick.disabled = false;
+          pick.textContent = 'Upload';
+        }
+      });
+
+      if (clear) clear.addEventListener('click', () => {
+        delete colorPhotos[color];
+        renderColorPhotos();
+      });
+    });
+  }
+
+  /** Upload a file to the Worker and return its served URL. */
+  async function uploadImage(file) {
+    const res = await fetch(`${API}/api/admin/upload`, {
+      method: 'POST',
+      headers: { 'Content-Type': file.type, Authorization: `Bearer ${token}` },
+      body: file,
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Upload failed');
+    return data.url;
+  }
+
+  $('fColors').addEventListener('input', renderColorPhotos);
 
   function syncCustomRequired() {
     const on = !!$('fCustomLabel').value.trim();
@@ -279,6 +362,9 @@
       colors: splitList($('fColors').value),
       description: $('fDescription').value.trim(),
       image: $('fImage').value.trim(),
+      colorImages: splitList($('fColors').value)
+        .filter(c => colorPhotos[c])
+        .map(c => ({ color: c, image: colorPhotos[c] })),
       customLabel: $('fCustomLabel').value.trim(),
       customRequired: $('fCustomLabel').value.trim() ? $('fCustomRequired').checked : false,
       active: $('fActive').checked,
@@ -312,14 +398,7 @@
     btn.disabled = true;
     btn.textContent = 'Uploading…';
     try {
-      const res = await fetch(`${API}/api/admin/upload`, {
-        method: 'POST',
-        headers: { 'Content-Type': file.type, Authorization: `Bearer ${token}` },
-        body: file,
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Upload failed');
-      $('fImage').value = data.url;
+      $('fImage').value = await uploadImage(file);
       syncThumb();
       modalMsg.innerHTML = '';
     } catch (err) {

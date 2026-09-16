@@ -33,9 +33,26 @@
       const colorSelect = p.colors.length
         ? `<select data-role="color">${p.colors.map(c => `<option>${esc(c)}</option>`).join('')}</select>`
         : '';
-      const img = p.image
-        ? `<img class="product-img" src="${esc(p.image)}" alt="${esc(p.name)}" loading="lazy" />`
+      // A colour with its own photo swaps the main image when picked.
+      const byColor = {};
+      (p.colorImages || []).forEach(ci => { byColor[ci.color] = ci.image; });
+      const firstColor = p.colors.length ? p.colors[0] : '';
+      const opening = byColor[firstColor] || p.image;
+
+      const img = opening
+        ? `<img class="product-img" data-role="img" src="${esc(opening)}" alt="${esc(p.name)}" loading="lazy" />`
         : `<div class="product-img-placeholder">&#9918;</div>`;
+
+      // Swatch strip: only worth showing when more than one colour has a photo.
+      const withPhotos = p.colors.filter(c => byColor[c]);
+      const swatches = withPhotos.length > 1 ? `
+        <div class="swatches" data-role="swatches">
+          ${p.colors.map(c => byColor[c] ? `
+            <button type="button" class="swatch${c === firstColor ? ' active' : ''}"
+                    data-swatch="${esc(c)}" title="${esc(c)}" aria-label="${esc(c)}">
+              <img src="${esc(byColor[c])}" alt="" loading="lazy" />
+            </button>` : '').join('')}
+        </div>` : '';
 
       const customField = p.customLabel ? `
         <div class="product-custom">
@@ -50,6 +67,7 @@
           <div class="product-body">
             <div class="product-name">${esc(p.name)}</div>
             <div class="product-price">${money(p.price)}</div>
+            ${swatches}
             ${p.description ? `<div class="product-desc">${esc(p.description)}</div>` : ''}
             ${customField}
             <div class="product-opts">
@@ -62,6 +80,35 @@
           </div>
         </div>`;
     }).join('');
+
+    // Keep the swatches, the colour dropdown and the main photo in step.
+    grid.querySelectorAll('.product-card').forEach(card => {
+      const product = products.find(p => p.id === card.dataset.id);
+      if (!product) return;
+
+      const byColor = {};
+      (product.colorImages || []).forEach(ci => { byColor[ci.color] = ci.image; });
+      const mainImg = card.querySelector('[data-role="img"]');
+      const colorSel = card.querySelector('[data-role="color"]');
+
+      const showColor = color => {
+        const src = byColor[color] || product.image;
+        if (mainImg && src) mainImg.src = src;
+        card.querySelectorAll('[data-swatch]').forEach(sw => {
+          sw.classList.toggle('active', sw.dataset.swatch === color);
+        });
+      };
+
+      if (colorSel) colorSel.addEventListener('change', () => showColor(colorSel.value));
+
+      card.querySelectorAll('[data-swatch]').forEach(sw => {
+        sw.addEventListener('click', () => {
+          const color = sw.dataset.swatch;
+          if (colorSel) colorSel.value = color;
+          showColor(color);
+        });
+      });
+    });
 
     grid.querySelectorAll('[data-role="add"]').forEach(btn => {
       btn.addEventListener('click', () => {

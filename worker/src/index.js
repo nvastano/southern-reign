@@ -15,7 +15,7 @@
  *   ALLOWED_ORIGINS     - comma-separated list of site origins
  */
 
-const PRODUCTS_RANGE = 'Products!A2:K';
+const PRODUCTS_RANGE = 'Products!A2:L';
 const ORDERS_RANGE = 'Orders!A:O';
 const SESSION_TTL_SECONDS = 60 * 60 * 8; // 8 hours
 
@@ -234,7 +234,23 @@ function rowToProduct(row) {
     // Blank label means this product takes no customization at all.
     customLabel: row[9] || '',
     customRequired: String(row[10] || '').toUpperCase() === 'TRUE',
+    // Optional per-colour photos: [{color, image}]. Bad JSON is ignored rather
+    // than breaking the whole catalogue.
+    colorImages: parseColorImages(row[11]),
   };
+}
+
+function parseColorImages(raw) {
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .filter(e => e && e.color && e.image)
+      .map(e => ({ color: String(e.color), image: String(e.image) }));
+  } catch {
+    return [];
+  }
 }
 
 function productToRow(p) {
@@ -245,6 +261,9 @@ function productToRow(p) {
     p.active === false ? 'FALSE' : 'TRUE',
     p.customLabel || '',
     p.customRequired ? 'TRUE' : 'FALSE',
+    Array.isArray(p.colorImages) && p.colorImages.length
+      ? JSON.stringify(p.colorImages.filter(e => e && e.color && e.image))
+      : '',
   ];
 }
 
