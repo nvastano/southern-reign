@@ -7,6 +7,58 @@
   align-items: start;
 }
 
+/* --- category filter + groups --- */
+
+.cat-filter {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 28px;
+}
+.cat-filter[hidden] { display: none; }
+
+.cat-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 16px;
+  border: 1px solid #d6dee9;
+  border-radius: 20px;
+  background: var(--white);
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-light);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.cat-chip:hover { border-color: var(--blue); color: var(--blue); }
+.cat-chip span {
+  font-size: 0.72rem;
+  background: var(--light-bg);
+  color: var(--text-light);
+  border-radius: 10px;
+  padding: 1px 7px;
+}
+.cat-chip.active {
+  background: var(--blue);
+  border-color: var(--blue);
+  color: var(--white);
+}
+.cat-chip.active span { background: rgba(255,255,255,0.22); color: var(--white); }
+
+.cat-group + .cat-group { margin-top: 40px; }
+.cat-heading {
+  font-size: 1.1rem;
+  color: var(--blue-dark);
+  letter-spacing: 0.08em;
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+  border-bottom: 2px solid var(--yellow);
+}
+
 /* --- product grid --- */
 .product-grid {
   display: grid;

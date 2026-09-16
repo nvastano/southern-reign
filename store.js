@@ -1,7 +1,8 @@
 (function () {
   const API = window.STORE_API;
 
-  const grid = document.getElementById('productGrid');
+  const groupsEl = document.getElementById('productGroups');
+  const catFilter = document.getElementById('catFilter');
   const statusEl = document.getElementById('storeStatus');
   const layout = document.getElementById('storeLayout');
   const cartItemsEl = document.getElementById('cartItems');
@@ -20,69 +21,136 @@
 
   /* ---------- render products ---------- */
 
+  const UNCATEGORISED = 'More Gear';
+  let activeCat = 'ALL';
+
+  /** Category names in the order products first mention them. */
+  function categoryList() {
+    const seen = [];
+    products.forEach(p => {
+      const c = (p.category || '').trim() || UNCATEGORISED;
+      if (!seen.includes(c)) seen.push(c);
+    });
+    return seen;
+  }
+
   function renderProducts() {
     if (!products.length) {
       statusEl.textContent = 'The team store is being set up — check back soon!';
       return;
     }
 
-    grid.innerHTML = products.map(p => {
-      const sizeSelect = p.sizes.length
-        ? `<select data-role="size">${p.sizes.map(s => `<option>${esc(s)}</option>`).join('')}</select>`
-        : '';
-      const colorSelect = p.colors.length
-        ? `<select data-role="color">${p.colors.map(c => `<option>${esc(c)}</option>`).join('')}</select>`
-        : '';
-      // A colour with its own photo swaps the main image when picked.
-      const byColor = {};
-      (p.colorImages || []).forEach(ci => { byColor[ci.color] = ci.image; });
-      const firstColor = p.colors.length ? p.colors[0] : '';
-      const opening = byColor[firstColor] || p.image;
+    renderFilter();
+    renderGroups();
 
-      const img = opening
-        ? `<img class="product-img" data-role="img" src="${esc(opening)}" alt="${esc(p.name)}" loading="lazy" />`
-        : `<div class="product-img-placeholder">&#9918;</div>`;
+    statusEl.style.display = 'none';
+    layout.style.display = 'grid';
+  }
 
-      // Swatch strip: only worth showing when more than one colour has a photo.
-      const withPhotos = p.colors.filter(c => byColor[c]);
-      const swatches = withPhotos.length > 1 ? `
-        <div class="swatches" data-role="swatches">
-          ${p.colors.map(c => byColor[c] ? `
-            <button type="button" class="swatch${c === firstColor ? ' active' : ''}"
-                    data-swatch="${esc(c)}" title="${esc(c)}" aria-label="${esc(c)}">
-              <img src="${esc(byColor[c])}" alt="" loading="lazy" />
-            </button>` : '').join('')}
-        </div>` : '';
+  function renderFilter() {
+    const cats = categoryList();
+    // Nothing to filter by if everything landed in one bucket.
+    if (cats.length < 2) { catFilter.hidden = true; return; }
 
-      const customField = p.customLabel ? `
-        <div class="product-custom">
-          <label>${esc(p.customLabel)}${p.customRequired ? ' <em>required</em>' : ' <em>optional</em>'}</label>
-          <input type="text" data-role="custom" maxlength="60"
-                 placeholder="${esc(p.customLabel)}" />
-        </div>` : '';
+    catFilter.hidden = false;
+    catFilter.innerHTML = [['ALL', 'All']]
+      .concat(cats.map(c => [c, c]))
+      .map(([value, label]) => {
+        const n = value === 'ALL'
+          ? products.length
+          : products.filter(p => ((p.category || '').trim() || UNCATEGORISED) === value).length;
+        return `<button type="button" class="cat-chip${value === activeCat ? ' active' : ''}"
+                  data-cat="${esc(value)}">${esc(label)} <span>${n}</span></button>`;
+      }).join('');
 
+    catFilter.querySelectorAll('[data-cat]').forEach(chip => {
+      chip.addEventListener('click', () => {
+        activeCat = chip.dataset.cat;
+        renderFilter();
+        renderGroups();
+        // Keep the chips in view rather than jumping to the top of the page.
+        catFilter.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      });
+    });
+  }
+
+  function renderGroups() {
+    const cats = categoryList().filter(c => activeCat === 'ALL' || c === activeCat);
+
+    groupsEl.innerHTML = cats.map(cat => {
+      const inCat = products.filter(
+        p => ((p.category || '').trim() || UNCATEGORISED) === cat);
+      // Only label the sections when there's more than one to tell apart.
+      const heading = categoryList().length > 1
+        ? `<h3 class="cat-heading">${esc(cat)}</h3>` : '';
       return `
-        <div class="product-card" data-id="${esc(p.id)}">
-          ${img}
-          <div class="product-body">
-            <div class="product-name">${esc(p.name)}</div>
-            <div class="product-price">${money(p.price)}</div>
-            ${swatches}
-            ${p.description ? `<div class="product-desc">${esc(p.description)}</div>` : ''}
-            ${customField}
-            <div class="product-opts">
-              ${sizeSelect}
-              ${colorSelect}
-              <input type="number" data-role="qty" value="1" min="1" max="99" aria-label="Quantity" />
-            </div>
-            <div class="product-err" data-role="err"></div>
-            <button class="btn-add" data-role="add">Add to Order</button>
-          </div>
-        </div>`;
+        <section class="cat-group">
+          ${heading}
+          <div class="product-grid">${inCat.map(cardHtml).join('')}</div>
+        </section>`;
     }).join('');
 
-    // Keep the swatches, the colour dropdown and the main photo in step.
-    grid.querySelectorAll('.product-card').forEach(card => {
+    wireCards();
+  }
+
+  function cardHtml(p) {
+    const sizeSelect = p.sizes.length
+      ? `<select data-role="size">${p.sizes.map(s => `<option>${esc(s)}</option>`).join('')}</select>`
+      : '';
+    const colorSelect = p.colors.length
+      ? `<select data-role="color">${p.colors.map(c => `<option>${esc(c)}</option>`).join('')}</select>`
+      : '';
+
+    // A colour with its own photo swaps the main image when picked.
+    const byColor = {};
+    (p.colorImages || []).forEach(ci => { byColor[ci.color] = ci.image; });
+    const firstColor = p.colors.length ? p.colors[0] : '';
+    const opening = byColor[firstColor] || p.image;
+
+    const img = opening
+      ? `<img class="product-img" data-role="img" src="${esc(opening)}" alt="${esc(p.name)}" loading="lazy" />`
+      : `<div class="product-img-placeholder">&#9918;</div>`;
+
+    // Swatch strip: only worth showing when more than one colour has a photo.
+    const withPhotos = p.colors.filter(c => byColor[c]);
+    const swatches = withPhotos.length > 1 ? `
+      <div class="swatches" data-role="swatches">
+        ${p.colors.map(c => byColor[c] ? `
+          <button type="button" class="swatch${c === firstColor ? ' active' : ''}"
+                  data-swatch="${esc(c)}" title="${esc(c)}" aria-label="${esc(c)}">
+            <img src="${esc(byColor[c])}" alt="" loading="lazy" />
+          </button>` : '').join('')}
+      </div>` : '';
+
+    const customField = p.customLabel ? `
+      <div class="product-custom">
+        <label>${esc(p.customLabel)}${p.customRequired ? ' <em>required</em>' : ' <em>optional</em>'}</label>
+        <input type="text" data-role="custom" maxlength="60" placeholder="${esc(p.customLabel)}" />
+      </div>` : '';
+
+    return `
+      <div class="product-card" data-id="${esc(p.id)}">
+        ${img}
+        <div class="product-body">
+          <div class="product-name">${esc(p.name)}</div>
+          <div class="product-price">${money(p.price)}</div>
+          ${swatches}
+          ${p.description ? `<div class="product-desc">${esc(p.description)}</div>` : ''}
+          ${customField}
+          <div class="product-opts">
+            ${sizeSelect}
+            ${colorSelect}
+            <input type="number" data-role="qty" value="1" min="1" max="99" aria-label="Quantity" />
+          </div>
+          <div class="product-err" data-role="err"></div>
+          <button class="btn-add" data-role="add">Add to Order</button>
+        </div>
+      </div>`;
+  }
+
+  /** Attach behaviour to every card currently on the page. */
+  function wireCards() {
+    groupsEl.querySelectorAll('.product-card').forEach(card => {
       const product = products.find(p => p.id === card.dataset.id);
       if (!product) return;
 
@@ -91,6 +159,7 @@
       const mainImg = card.querySelector('[data-role="img"]');
       const colorSel = card.querySelector('[data-role="color"]');
 
+      // Keep the swatches, the colour dropdown and the main photo in step.
       const showColor = color => {
         const src = byColor[color] || product.image;
         if (mainImg && src) mainImg.src = src;
@@ -103,19 +172,13 @@
 
       card.querySelectorAll('[data-swatch]').forEach(sw => {
         sw.addEventListener('click', () => {
-          const color = sw.dataset.swatch;
-          if (colorSel) colorSel.value = color;
-          showColor(color);
+          if (colorSel) colorSel.value = sw.dataset.swatch;
+          showColor(sw.dataset.swatch);
         });
       });
-    });
 
-    grid.querySelectorAll('[data-role="add"]').forEach(btn => {
+      const btn = card.querySelector('[data-role="add"]');
       btn.addEventListener('click', () => {
-        const card = btn.closest('.product-card');
-        const product = products.find(p => p.id === card.dataset.id);
-        if (!product) return;
-
         const pick = role => {
           const el = card.querySelector(`[data-role="${role}"]`);
           return el ? el.value : '';
@@ -144,9 +207,6 @@
         }, 1200);
       });
     });
-
-    statusEl.style.display = 'none';
-    layout.style.display = 'grid';
   }
 
   /* ---------- cart ---------- */
