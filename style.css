@@ -552,3 +552,23 @@ footer p { margin-bottom: 4px; }
     border-top: 1px solid rgba(255,255,255,0.1);
   }
 }
+
+/* TEAM POSTER (sponsors page) */
+.team-poster {
+  background: var(--blue-dark);
+  padding: 0 24px 40px;
+}
+.team-poster .container {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+.team-poster img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 6px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+}
+@media (max-width: 640px) {
+  .team-poster { padding: 0 16px 28px; }
+}
