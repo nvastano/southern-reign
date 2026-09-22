@@ -45,20 +45,7 @@
 
         <div class="roster-season-badge">2026–2027 Season</div>
 
-        <div class="roster-list">
-          <div class="roster-row"><span class="rn">1</span><span class="rname">Joey Kushnir</span></div>
-          <div class="roster-row"><span class="rn">3</span><span class="rname">Jackson Vastano</span></div>
-          <div class="roster-row"><span class="rn">5</span><span class="rname">Braylon DiMarco</span></div>
-          <div class="roster-row"><span class="rn">8</span><span class="rname">Ryker Pasquale</span></div>
-          <div class="roster-row"><span class="rn">10</span><span class="rname">Reeves Summers</span></div>
-          <div class="roster-row"><span class="rn">12</span><span class="rname">Jacob Irvine</span></div>
-          <div class="roster-row"><span class="rn">23</span><span class="rname">Colton Whited</span></div>
-          <div class="roster-row"><span class="rn">30</span><span class="rname">Sutton Beal</span></div>
-          <div class="roster-row"><span class="rn">38</span><span class="rname">Ford Henry</span></div>
-          <div class="roster-row"><span class="rn">44</span><span class="rname">Jack Moore</span></div>
-          <div class="roster-row"><span class="rn">45</span><span class="rname">Colt Henry</span></div>
-          <div class="roster-row"><span class="rn">99</span><span class="rname">Wilder Strong</span></div>
-        </div>
+        <div class="roster-list" id="rosterList"></div>
 
         <div class="staff-label">Head Coaches</div>
         <div class="staff-list">
@@ -80,6 +67,29 @@
       </div>
     </div>
   </section>
+
+  <!-- PLAYER PROFILE MODAL -->
+  <div class="pm-overlay" id="playerModal" hidden>
+    <div class="pm" role="dialog" aria-modal="true" aria-labelledby="pmName">
+      <button type="button" class="pm-close" id="pmClose" aria-label="Close">&times;</button>
+
+      <div class="pm-head">
+        <span class="pm-num" id="pmNum"></span>
+        <h2 class="pm-name" id="pmName"></h2>
+      </div>
+
+      <div class="pm-body">
+        <img class="pm-poster" id="pmPoster" src="" alt="" hidden />
+        <dl class="pm-facts" id="pmFacts"></dl>
+      </div>
+
+      <div class="pm-nav">
+        <button type="button" id="pmPrev">&lsaquo; Prev</button>
+        <span id="pmCount"></span>
+        <button type="button" id="pmNext">Next &rsaquo;</button>
+      </div>
+    </div>
+  </div>
 
   <!-- FOOTER -->
   <footer>
@@ -126,9 +136,194 @@
       transition: background 0.15s, transform 0.15s;
     }
 
-    .roster-row:hover {
+    .roster-row.has-profile { cursor: pointer; }
+
+    .roster-row.has-profile:hover,
+    .roster-row.has-profile:focus-visible {
       background: rgba(200,228,40,0.1);
       transform: translateX(4px);
+      outline: none;
+    }
+    .roster-row.has-profile:focus-visible { box-shadow: 0 0 0 2px var(--yellow); }
+
+    /* player thumbnail in the row */
+    .rthumb {
+      width: 46px;
+      height: 46px;
+      object-fit: cover;
+      border-radius: 3px;
+      align-self: center;
+      margin-left: 14px;
+      flex-shrink: 0;
+      background: rgba(255,255,255,0.06);
+    }
+    .rthumb-empty {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      color: rgba(255,255,255,0.3);
+      border: 1px dashed rgba(255,255,255,0.15);
+    }
+
+    .rgo {
+      align-self: center;
+      padding-right: 18px;
+      font-size: 1.6rem;
+      line-height: 1;
+      color: var(--yellow);
+      opacity: 0.55;
+    }
+
+    /* ===== PROFILE MODAL ===== */
+    .pm-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 300;
+      background: rgba(8,11,22,0.86);
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 24px 16px;
+      overflow-y: auto;
+    }
+    .pm-overlay[hidden] { display: none; }
+
+    .pm {
+      position: relative;
+      width: 100%;
+      max-width: 880px;
+      background: #141828;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      box-shadow: 0 24px 70px rgba(0,0,0,0.6);
+      overflow: hidden;
+    }
+
+    .pm-close {
+      position: absolute;
+      top: 10px;
+      right: 12px;
+      z-index: 2;
+      width: 36px;
+      height: 36px;
+      border: none;
+      border-radius: 50%;
+      background: rgba(0,0,0,0.5);
+      color: #fff;
+      font-size: 1.5rem;
+      line-height: 1;
+      cursor: pointer;
+    }
+    .pm-close:hover { background: var(--yellow); color: var(--blue-dark); }
+
+    .pm-head {
+      display: flex;
+      align-items: baseline;
+      gap: 14px;
+      padding: 22px 60px 18px 26px;
+      border-bottom: 2px solid var(--yellow);
+      background: var(--blue-dark);
+    }
+    .pm-num {
+      font-family: 'Oswald', sans-serif;
+      font-size: 2rem;
+      font-weight: 700;
+      line-height: 1;
+      color: var(--yellow);
+    }
+    .pm-name {
+      font-family: 'Oswald', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #fff;
+      margin: 0;
+      overflow-wrap: anywhere;
+    }
+
+    .pm-body {
+      display: grid;
+      grid-template-columns: minmax(0, 0.9fr) minmax(0, 1fr);
+      gap: 24px;
+      padding: 24px 26px;
+      align-items: start;
+    }
+    .pm-poster {
+      width: 100%;
+      border-radius: 5px;
+      display: block;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    }
+    /* No poster yet — let the answers use the full width. */
+    .pm-poster[hidden] + .pm-facts { grid-column: 1 / -1; }
+
+    .pm-facts { display: flex; flex-direction: column; gap: 8px; }
+    .pm-qa {
+      background: rgba(255,255,255,0.05);
+      border-left: 3px solid var(--yellow);
+      border-radius: 3px;
+      padding: 10px 14px;
+    }
+    .pm-qa dt {
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.64rem;
+      font-weight: 600;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+      color: #8fa6cf;
+      margin-bottom: 3px;
+    }
+    .pm-qa dd { font-size: 0.92rem; color: #fff; margin: 0; }
+
+    .pm-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 26px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      background: rgba(0,0,0,0.25);
+    }
+    .pm-nav button {
+      background: none;
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 4px;
+      padding: 8px 18px;
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #fff;
+      cursor: pointer;
+    }
+    .pm-nav button:hover:not(:disabled) {
+      background: var(--yellow);
+      border-color: var(--yellow);
+      color: var(--blue-dark);
+    }
+    .pm-nav button:disabled { opacity: 0.3; cursor: not-allowed; }
+    .pm-nav span {
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.5);
+    }
+
+    @media (max-width: 700px) {
+      .pm-overlay { padding: 0; }
+      .pm { border-radius: 0; min-height: 100%; border: none; }
+      .pm-body { grid-template-columns: 1fr; padding: 18px; gap: 18px; }
+      .pm-head { padding: 18px 56px 16px 18px; }
+      .pm-nav { padding: 14px 18px; }
+      .rthumb { width: 40px; height: 40px; margin-left: 10px; }
+      .rgo { display: none; }
     }
 
     .rn {
@@ -209,6 +404,144 @@
       font-style: italic;
     }
   </style>
+
+  <script>
+  /* ------------------------------------------------------------------
+     ROSTER DATA
+     To add a player's profile: drop the poster in assets/players/ and add
+     `face`, `poster` and `facts` to their entry. A player with no poster
+     still lists normally — the row just isn't clickable.
+     ------------------------------------------------------------------ */
+  const PLAYERS = [
+    {
+      num: 1, name: 'Joey Kushnir',
+      face: 'assets/players/01-joey-kushnir-face.jpg',
+      poster: 'assets/players/01-joey-kushnir.jpg',
+      facts: [
+        ['Name & nickname', 'Joseph — "Joey"'],
+        ['Favorite position', 'Left Center'],
+        ['Favorite MLB team or player', 'Atlanta Braves · Ronald Acuña Jr.'],
+        ['Walk-up song', 'Heaven on this Earth'],
+        ['Best part of baseball', 'Hitting'],
+        ['Goal this season', 'Hit a home run'],
+        ['Favorite food or snack', 'Burrito'],
+        ['When not playing baseball', 'Play football'],
+        ['When he grows up', 'MLB player'],
+        ['Home run or diving catch?', 'Diving catch'],
+      ],
+    },
+    { num: 3,  name: 'Jackson Vastano' },
+    { num: 5,  name: 'Braylon DiMarco' },
+    { num: 8,  name: 'Ryker Pasquale' },
+    { num: 10, name: 'Reeves Summers' },
+    { num: 12, name: 'Jacob Irvine' },
+    { num: 23, name: 'Colton Whited' },
+    { num: 30, name: 'Sutton Beal' },
+    { num: 38, name: 'Ford Henry' },
+    { num: 44, name: 'Jack Moore' },
+    { num: 45, name: 'Colt Henry' },
+    { num: 99, name: 'Wilder Strong' },
+  ];
+
+  (function () {
+    const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g,
+      c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const $ = id => document.getElementById(id);
+
+    const hasProfile = p => !!(p.poster || (p.facts && p.facts.length));
+    const initials = name => name.split(/\s+/).map(w => w[0]).join('').slice(0, 2);
+
+    /* ---- roster rows ---- */
+    $('rosterList').innerHTML = PLAYERS.map((p, i) => {
+      const live = hasProfile(p);
+      const thumb = p.face
+        ? `<img class="rthumb" src="${esc(p.face)}" alt="" loading="lazy" />`
+        : `<span class="rthumb rthumb-empty">${esc(initials(p.name))}</span>`;
+      return `
+        <div class="roster-row${live ? ' has-profile' : ''}" data-index="${i}"
+             ${live ? 'role="button" tabindex="0"' : ''}>
+          <span class="rn">${esc(p.num)}</span>
+          ${thumb}
+          <span class="rname">${esc(p.name)}</span>
+          ${live ? '<span class="rgo">&rsaquo;</span>' : ''}
+        </div>`;
+    }).join('');
+
+    document.querySelectorAll('.roster-row.has-profile').forEach(row => {
+      const open = () => openPlayer(parseInt(row.dataset.index, 10));
+      row.addEventListener('click', open);
+      row.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); }
+      });
+    });
+
+    /* ---- modal ---- */
+    const modal = $('playerModal');
+    // Only players with a profile take part in prev/next.
+    const withProfile = PLAYERS.map((p, i) => i).filter(i => hasProfile(PLAYERS[i]));
+    let current = -1;
+
+    function openPlayer(index) {
+      const p = PLAYERS[index];
+      if (!p || !hasProfile(p)) return;
+      current = index;
+
+      $('pmNum').textContent = '#' + p.num;
+      $('pmName').textContent = p.name;
+
+      const poster = $('pmPoster');
+      if (p.poster) {
+        poster.src = p.poster;
+        poster.alt = p.name + ' player profile';
+        poster.hidden = false;
+      } else {
+        poster.hidden = true;
+        poster.removeAttribute('src');
+      }
+
+      $('pmFacts').innerHTML = (p.facts || []).map(([q, a]) =>
+        `<div class="pm-qa"><dt>${esc(q)}</dt><dd>${esc(a)}</dd></div>`).join('');
+
+      const pos = withProfile.indexOf(index);
+      $('pmCount').textContent = `${pos + 1} of ${withProfile.length}`;
+      const solo = withProfile.length < 2;
+      $('pmPrev').disabled = solo;
+      $('pmNext').disabled = solo;
+
+      modal.hidden = false;
+      document.body.style.overflow = 'hidden';
+      $('pmClose').focus();
+      modal.querySelector('.pm').scrollTop = 0;
+    }
+
+    function closePlayer() {
+      modal.hidden = true;
+      document.body.style.overflow = '';
+      if (current >= 0) {
+        const row = document.querySelector(`.roster-row[data-index="${current}"]`);
+        if (row) row.focus();
+      }
+      current = -1;
+    }
+
+    function step(dir) {
+      if (withProfile.length < 2) return;
+      const pos = withProfile.indexOf(current);
+      openPlayer(withProfile[(pos + dir + withProfile.length) % withProfile.length]);
+    }
+
+    $('pmClose').addEventListener('click', closePlayer);
+    $('pmPrev').addEventListener('click', () => step(-1));
+    $('pmNext').addEventListener('click', () => step(1));
+    modal.addEventListener('click', e => { if (e.target === modal) closePlayer(); });
+    document.addEventListener('keydown', e => {
+      if (modal.hidden) return;
+      if (e.key === 'Escape') closePlayer();
+      if (e.key === 'ArrowLeft') step(-1);
+      if (e.key === 'ArrowRight') step(1);
+    });
+  })();
+  </script>
 
   <script src="nav.js"></script>
 </body>
