@@ -30,14 +30,6 @@
     </div>
   </nav>
 
-  <!-- PAGE HEADER -->
-  <div class="page-header">
-    <div class="container">
-      <h1>2026–2027 Roster</h1>
-      <p>8U Travel Baseball &bull; Spring Hill, Tennessee</p>
-    </div>
-  </div>
-
   <!-- TEAM PHOTO -->
   <div class="roster-hero">
     <div class="container">
@@ -110,9 +102,10 @@
   </footer>
 
   <style>
+    /* Top padding clears the fixed 64px nav now that the page header is gone. */
     .roster-hero {
       background: var(--blue-dark);
-      padding: 0 24px 40px;
+      padding: 88px 24px 40px;
     }
     .roster-hero .container {
       max-width: 1100px;
@@ -349,7 +342,7 @@
       .pm-nav { padding: 14px 18px; }
       .rthumb { width: 40px; height: 40px; margin-left: 10px; }
       .rgo { display: none; }
-      .roster-hero { padding: 0 16px 28px; }
+      .roster-hero { padding: 80px 16px 28px; }
     }
 
     .rn {
