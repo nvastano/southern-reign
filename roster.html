@@ -38,6 +38,15 @@
     </div>
   </div>
 
+  <!-- TEAM PHOTO -->
+  <div class="roster-hero">
+    <div class="container">
+      <img src="assets/roster-team-2026.jpg"
+           alt="Southern Reign 8U 2026 team photo"
+           onerror="this.closest('.roster-hero').remove()" />
+    </div>
+  </div>
+
   <!-- ROSTER -->
   <section class="section section-dark">
     <div class="container">
@@ -101,6 +110,22 @@
   </footer>
 
   <style>
+    .roster-hero {
+      background: var(--blue-dark);
+      padding: 0 24px 40px;
+    }
+    .roster-hero .container {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .roster-hero img {
+      display: block;
+      width: 100%;
+      height: auto;
+      border-radius: 6px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    }
+
     .roster-wrap {
       max-width: 640px;
       margin: 0 auto;
@@ -324,6 +349,7 @@
       .pm-nav { padding: 14px 18px; }
       .rthumb { width: 40px; height: 40px; margin-left: 10px; }
       .rgo { display: none; }
+      .roster-hero { padding: 0 16px 28px; }
     }
 
     .rn {
