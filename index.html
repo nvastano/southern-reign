@@ -12,6 +12,14 @@
   <meta name="apple-mobile-web-app-title" content="Southern Reign" />
   <link rel="manifest" href="site.webmanifest" />
   <meta name="theme-color" content="#143f8a" />
+  <script>
+    /* Arm the hero entrance before first paint so it animates in rather than
+       flashing the finished state. Skipped entirely for reduced motion; if this
+       never runs, the hero just shows normally. */
+    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      document.documentElement.classList.add('hero-anim');
+    }
+  </script>
 </head>
 <body>
 
