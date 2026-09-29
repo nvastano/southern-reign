@@ -82,6 +82,10 @@
       <div class="pm-body">
         <img class="pm-poster" id="pmPoster" src="" alt="" hidden />
         <dl class="pm-facts" id="pmFacts"></dl>
+        <div class="pm-song" id="pmSong" hidden>
+          <span class="pm-song-label">Walk-up song</span>
+          <div id="pmSongPlayer"></div>
+        </div>
       </div>
 
       <div class="pm-nav">
@@ -298,6 +302,29 @@
     }
     .pm-qa dd { font-size: 0.92rem; color: #fff; margin: 0; }
 
+    /* walk-up song player — spans the full width under both columns */
+    .pm-song { grid-column: 1 / -1; }
+    .pm-song[hidden] { display: none; }
+    .pm-song-label {
+      display: block;
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.64rem;
+      font-weight: 600;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+      color: #8fa6cf;
+      margin-bottom: 8px;
+    }
+    .pm-song iframe {
+      width: 100%;
+      max-width: 660px;
+      height: 175px;
+      border: none;
+      overflow: hidden;
+      background: transparent;
+      border-radius: 6px;
+    }
+
     .pm-nav {
       display: flex;
       align-items: center;
@@ -436,6 +463,7 @@
       num: 1, name: 'Joey Kushnir',
       face: 'assets/players/01-joey-kushnir-face.jpg',
       poster: 'assets/players/01-joey-kushnir.jpg',
+      song: 'https://music.apple.com/us/album/heaven-on-this-earth/1800088490?i=1800089163',
       facts: [
         ['Name & nickname', 'Joseph — "Joey"'],
         ['Favorite position', 'Left Center'],
@@ -612,6 +640,43 @@
     const withProfile = PLAYERS.map((p, i) => i).filter(i => hasProfile(PLAYERS[i]));
     let current = -1;
 
+    /* ---- walk-up song ----
+       Turns an Apple Music share link into its embeddable form. The player is
+       built fresh each time the modal opens and torn down when it closes, which
+       is also what stops playback when you close or switch players. */
+    function appleEmbedUrl(share) {
+      try {
+        const u = new URL(share);
+        if (!/(^|\.)music\.apple\.com$/i.test(u.hostname)) return '';
+        u.hostname = 'embed.music.apple.com';
+        return u.toString();
+      } catch {
+        return '';
+      }
+    }
+
+    function clearSong() {
+      $('pmSongPlayer').innerHTML = '';
+      $('pmSong').hidden = true;
+    }
+
+    function showSong(p) {
+      clearSong();
+      const src = p.song ? appleEmbedUrl(p.song) : '';
+      if (!src) return;
+
+      const frame = document.createElement('iframe');
+      frame.src = src;
+      frame.title = `${p.name} walk-up song`;
+      frame.loading = 'lazy';
+      frame.allow = 'autoplay *; encrypted-media *;';
+      frame.setAttribute('sandbox',
+        'allow-forms allow-popups allow-same-origin allow-scripts ' +
+        'allow-storage-access-by-user-activation allow-top-navigation-by-user-activation');
+      $('pmSongPlayer').appendChild(frame);
+      $('pmSong').hidden = false;
+    }
+
     function openPlayer(index) {
       const p = PLAYERS[index];
       if (!p || !hasProfile(p)) return;
@@ -633,6 +698,8 @@
       $('pmFacts').innerHTML = (p.facts || []).map(([q, a]) =>
         `<div class="pm-qa"><dt>${esc(q)}</dt><dd>${esc(a)}</dd></div>`).join('');
 
+      showSong(p);
+
       const pos = withProfile.indexOf(index);
       $('pmCount').textContent = `${pos + 1} of ${withProfile.length}`;
       const solo = withProfile.length < 2;
@@ -646,6 +713,7 @@
     }
 
     function closePlayer() {
+      clearSong();               // stops playback
       modal.hidden = true;
       document.body.style.overflow = '';
       if (current >= 0) {
