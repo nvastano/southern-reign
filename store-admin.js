@@ -488,7 +488,9 @@
             `<option value="${v}"${v === st ? ' selected' : ''}>${STATUS_LABEL[v]}</option>`).join('')}
         </select>`;
 
-      const lines = g.lines.map(l => `
+      const lines = g.lines.map(l => {
+        const ls = (l.status || 'NEW').toUpperCase();
+        return `
         <div class="oline">
           <div class="ol-main">
             <div class="ol-item">${esc(l.item)}</div>
@@ -497,8 +499,15 @@
           </div>
           <div class="ol-qty">&times;${esc(l.qty)}</div>
           <div class="ol-total">$${esc(l.lineTotal)}</div>
+          <select class="order-status line-status st-${esc(ls.toLowerCase())}"
+                  data-line-row="${l.row}" data-line-order="${esc(l.orderId)}"
+                  aria-label="Status for ${esc(l.item)}">
+            ${STATUSES.map(v =>
+              `<option value="${v}"${v === ls ? ' selected' : ''}>${STATUS_LABEL[v]}</option>`).join('')}
+          </select>
           <button type="button" class="btn-sm secondary ol-edit" data-edit="${l.row}">Edit</button>
-        </div>`).join('');
+        </div>`;
+      }).join('');
 
       const contact = [
         g.email ? `<a href="mailto:${esc(g.email)}">${esc(g.email)}</a>` : '',
@@ -564,6 +573,18 @@
       });
     });
 
+    // Per-line dropdown: changes just that item, leaving the order's others.
+    orderList.querySelectorAll('[data-line-row]').forEach(sel => {
+      sel.addEventListener('click', e => e.stopPropagation());
+      sel.addEventListener('change', async e => {
+        e.stopPropagation();
+        if (!sel.value) return;
+        sel.disabled = true;
+        await applyLineStatus(
+          parseInt(sel.dataset.lineRow, 10), sel.dataset.lineOrder, sel.value);
+      });
+    });
+
     orderList.querySelectorAll('[data-pick]').forEach(box => {
       box.addEventListener('click', e => e.stopPropagation());
       box.addEventListener('change', () => {
@@ -591,6 +612,25 @@
     $('selectAll').checked = allShown;
   }
 
+  /** Write `status` to the given sheet rows. */
+  async function writeStatus(targets, status, describe) {
+    if (!targets.length) return;
+    try {
+      const res = await api('/api/admin/orders/status', {
+        method: 'POST',
+        body: JSON.stringify({ targets, status }),
+      });
+      await loadOrders();
+      notify(
+        `${describe} marked ${STATUS_LABEL[status] || status}.` +
+        (res.skipped ? ` ${res.skipped} line(s) skipped — refresh and retry those.` : '')
+      );
+    } catch (err) {
+      notify(err.message, 'error');
+      await loadOrders();
+    }
+  }
+
   /** Write `status` to every line of each given order id. */
   async function applyStatus(orderIds, status) {
     const wanted = new Set(orderIds);
@@ -598,23 +638,18 @@
       .filter(o => wanted.has(o.orderId))
       .map(o => ({ row: o.row, orderId: o.orderId }));
 
-    if (!targets.length) return;
+    const n = orderIds.length;
+    await writeStatus(targets, status, `${n} order${n === 1 ? '' : 's'}`);
+  }
 
-    try {
-      const res = await api('/api/admin/orders/status', {
-        method: 'POST',
-        body: JSON.stringify({ targets, status }),
-      });
-      await loadOrders();
-      const label = STATUS_LABEL[status] || status;
-      notify(
-        `${orderIds.length} order${orderIds.length === 1 ? '' : 's'} marked ${label}.` +
-        (res.skipped ? ` ${res.skipped} line(s) skipped — refresh and retry those.` : '')
-      );
-    } catch (err) {
-      notify(err.message, 'error');
-      await loadOrders();
-    }
+  /** Write `status` to one line only, leaving the rest of the order alone. */
+  async function applyLineStatus(row, orderId, status) {
+    const line = orders.find(o => o.row === row);
+    await writeStatus(
+      [{ row, orderId }],
+      status,
+      line ? `“${line.item}”` : '1 item'
+    );
   }
 
   async function loadOrders() {

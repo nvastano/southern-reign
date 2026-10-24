@@ -905,6 +905,14 @@
 }
 .ol-edit { padding: 6px 14px !important; flex-shrink: 0; }
 
+/* per-line status, smaller than the order-level one */
+.line-status {
+  font-size: 0.66rem;
+  padding: 4px 7px;
+  max-width: 110px;
+  flex-shrink: 0;
+}
+
 .order-contact {
   font-size: 0.82rem;
   color: var(--text-light);
@@ -1124,7 +1132,8 @@
   .oline { flex-wrap: wrap; }
   .ol-main { flex: 1 1 100%; }
   .ol-qty, .ol-total { font-size: 0.88rem; }
-  .ol-edit { margin-left: auto; }
+  .line-status { font-size: 0.68rem; margin-left: auto; }
+  .ol-edit { margin-left: 0; }
 
   .stat-num { font-size: 1.25rem; }
   .oc-total { font-size: 1.05rem; }
